@@ -4,6 +4,36 @@ Terminal Story Engine - A reality-bending CYOA experience.
 
 The story begins when you run this file. There is no menu. No pause.
 The terminal becomes the story, and the story knows it's being told.
+
+MUTATION ENFORCEMENT:
+This file enforces mutations at the code level to ensure they actually apply.
+The AI is instructed about mutations, but critical ones are enforced here:
+
+CHOICE MUTATIONS (code-enforced):
+- no_choices: Shows only "Continue" option
+- choice_inflation: Ensures 6-8 choices
+- choice_drought: Limits to 2 choices
+- hidden_choice: Replaces one choice with ░░░░░░
+- reverse_choices: Reverses choice order
+- duplicate_choices: Makes choices identical/similar
+- forced_random: Auto-selects a choice
+- temporal_loop: Repeats previous 3 choices
+
+NARRATIVE MUTATIONS (code-enforced):
+- no_narrative: Skips narrative entirely
+- echo_active: Repeats words 3x
+- redaction: Replaces words with ███
+- breathing_text: Expands spacing
+- scattered: Scatters words across screen
+
+ONE-SHOT MUTATIONS (code-enforced):
+- stat_reveal: Briefly shows hidden stats
+- ascii_intrusion: Forces creepy ASCII art
+- permission_error: Fake system error
+- memory_rewrite: Retcons previous choice
+- fake_system_crash: Fake kernel panic
+
+All other mutations are AI-driven (visual effects, format shifts, etc.)
 """
 
 import sys
@@ -217,6 +247,64 @@ class Game:
                         self.renderer.console.print("\n")
                         time.sleep(1.5)
                 
+                # ===== ONE-SHOT MUTATION EFFECTS =====
+                # Apply special visual effects for one-shot mutations
+                for mutation in active_mutations:
+                    if mutation.duration == 0:  # One-shot effects
+                        if mutation.key == 'stat_reveal':
+                            # Briefly show hidden stats
+                            self.renderer.console.print("\n[bold red]>>> SYSTEM BREACH <<<[/]")
+                            self.renderer.console.print(f"[dim]Health: {context['character_stats']['health']}")
+                            self.renderer.console.print(f"Sanity: {context['hidden_stats']['sanity']}")
+                            self.renderer.console.print(f"Courage: {context['hidden_stats']['courage']}")
+                            self.renderer.console.print(f"Trust: {context['hidden_stats']['trust']}[/]\n")
+                            time.sleep(2.0)
+                        
+                        elif mutation.key == 'ascii_intrusion':
+                            # Force ASCII art to appear
+                            creepy_art = """
+        ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+        ▓░░░░░░░░░░░░░░░░▓
+        ▓░░█████░░█████░░▓
+        ▓░░█████░░█████░░▓
+        ▓░░░░░░░░░░░░░░░░▓
+        ▓░░░░█████████░░░▓
+        ▓░░░░░░░░░░░░░░░░▓
+        ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                            """
+                            self.renderer.console.print(creepy_art, style="bold red")
+                            time.sleep(1.5)
+                        
+                        elif mutation.key == 'permission_error':
+                            # Fake permission error
+                            self.renderer.console.print("\n[bold red]ERROR: Permission denied[/]")
+                            self.renderer.console.print("[dim red]You do not have permission to continue this story.[/]")
+                            self.renderer.console.print("[dim red]Contact your system administrator.[/]\n")
+                            time.sleep(2.0)
+                        
+                        elif mutation.key == 'memory_rewrite':
+                            # Retcon previous choice
+                            if self.story.choice_history:
+                                self.renderer.console.print(f"\n[dim italic yellow]Wait... that's not what happened.[/]")
+                                self.renderer.console.print(f"[dim italic yellow]You didn't choose '{self.story.choice_history[-1]}'[/]")
+                                self.renderer.console.print(f"[dim italic yellow]Did you?[/]\n")
+                                time.sleep(2.0)
+                        
+                        elif mutation.key == 'choice_rebellion':
+                            # Will be handled after choice selection
+                            pass
+                        
+                        elif mutation.key == 'fake_system_crash':
+                            # Fake crash screen
+                            self.renderer.console.clear()
+                            self.renderer.console.print("\n\n\n[bold red on white]  KERNEL PANIC  [/]")
+                            self.renderer.console.print("[red]System halted.[/]")
+                            self.renderer.console.print("[dim]Press any key to continue...[/]")
+                            time.sleep(3.0)
+                            self.renderer.console.clear()
+                            self.renderer.console.print("[dim green]...recovering...[/]\n")
+                            time.sleep(1.0)
+                
                 # Display narrative (always use opening which contains current AI response)
                 narrative = opening.get('narrative', '')
                 if not narrative:
@@ -225,34 +313,76 @@ class Game:
                 # Track horror concepts used for variety
                 self.story.detect_horror_concepts(narrative)
                 
-                # Apply typography effects (mutations are now in narrative)
-                narrative = self.typography.apply_effects(narrative)
-                narrative = self.typography.process_narrator_corrections(narrative)
+                # ===== NARRATIVE MUTATION ENFORCEMENT =====
+                # Check for "No Narrative" mutation - skip narrative entirely
+                no_narrative_active = any(m.key == 'no_narrative' for m in active_mutations)
                 
-                # Add narrator mood
-                prefix, suffix = self.narrator.process_narrative_mood(
-                    narrative, 
-                    context['hidden_stats']
-                )
-                narrative = prefix + narrative + suffix
-                
-                # Get narrator interjection (revelation-aware)
-                interjection = self.narrator.get_interjection(context)
-                
-                # Check if breadcrumbs should appear
-                breadcrumb_active = self.truth.should_add_breadcrumbs(
-                    context['choice_count'],
-                    context['hidden_stats']['sanity']
-                )
-                
-                # Calculate intensity for rendering
-                intensity = self.typography.intensity
-                
-                # Character stats are hidden - used only for narrative generation
-                # self.renderer.show_character_stats(context['character_stats'])
-                
-                # Show narrative (mutations integrated naturally)
-                self.renderer.show_narrative(narrative, interjection, intensity)
+                if not no_narrative_active:
+                    # Apply typography effects (mutations are now in narrative)
+                    narrative = self.typography.apply_effects(narrative)
+                    narrative = self.typography.process_narrator_corrections(narrative)
+                    
+                    # Apply visual mutations to narrative text
+                    for mutation in active_mutations:
+                        if mutation.key == 'echo_active':
+                            # Add echo effects to key words
+                            words = narrative.split()
+                            for i in range(len(words)):
+                                if len(words[i]) > 5 and random.random() < 0.2:
+                                    words[i] = f"{words[i]} {words[i]} {words[i]}"
+                            narrative = ' '.join(words)
+                        
+                        elif mutation.key == 'redaction':
+                            # Redact random words
+                            words = narrative.split()
+                            for i in range(len(words)):
+                                if len(words[i]) > 4 and random.random() < 0.15:
+                                    words[i] = "█" * len(words[i])
+                            narrative = ' '.join(words)
+                        
+                        elif mutation.key == 'breathing_text':
+                            # Add expanding spaces
+                            narrative = narrative.replace(' ', '  ')
+                        
+                        elif mutation.key == 'scattered':
+                            # Scatter some words
+                            words = narrative.split()
+                            scattered_words = []
+                            for word in words:
+                                if random.random() < 0.3:
+                                    scattered_words.append(' ' * random.randint(5, 15) + word)
+                                else:
+                                    scattered_words.append(word)
+                            narrative = ' '.join(scattered_words)
+                    
+                    # Add narrator mood
+                    prefix, suffix = self.narrator.process_narrative_mood(
+                        narrative, 
+                        context['hidden_stats']
+                    )
+                    narrative = prefix + narrative + suffix
+                    
+                    # Get narrator interjection (revelation-aware)
+                    interjection = self.narrator.get_interjection(context)
+                    
+                    # Check if breadcrumbs should appear
+                    breadcrumb_active = self.truth.should_add_breadcrumbs(
+                        context['choice_count'],
+                        context['hidden_stats']['sanity']
+                    )
+                    
+                    # Calculate intensity for rendering
+                    intensity = self.typography.intensity
+                    
+                    # Character stats are hidden - used only for narrative generation
+                    # self.renderer.show_character_stats(context['character_stats'])
+                    
+                    # Show narrative (mutations integrated naturally)
+                    self.renderer.show_narrative(narrative, interjection, intensity)
+                else:
+                    # No narrative mutation - skip to choices
+                    self.renderer.console.print(f"\n[dim italic]The story goes silent.[/]\n")
+                    intensity = self.typography.intensity
                 
                 # NOW show consequence feedback AFTER narrative (so damage makes narrative sense)
                 consequence_feedback = self.story.get_consequence_feedback(self.story.last_danger_level)
@@ -344,27 +474,89 @@ class Game:
                         choices = ["Continue forward", "Look around carefully", "Pause and consider options"]
                         print("[DEBUG] Using fallback choices - AI response invalid")
                     
-                    # Check for "No Choices" mutation - enforce it
-                    no_choices_active = any(m.key == 'no_choices' for m in active_mutations)
+                    # ===== MUTATION ENFORCEMENT =====
+                    # Apply mutations that need code-level enforcement
                     
-                    if no_choices_active:
-                        # Show only "Continue" option
+                    # No Choices - override with single Continue
+                    if any(m.key == 'no_choices' for m in active_mutations):
                         self.renderer.console.print(f"\n[dim italic]You have no say in what happens next.[/]\n")
                         time.sleep(2.0)
                         choices = ["Continue"]
                     
-                    self.renderer.show_choices(choices, intensity)
+                    # No Narrative - skip narrative display (already shown above)
+                    # This is handled by checking mutation before show_narrative
+                    
+                    # Choice Inflation - ensure 6-8 choices
+                    elif any(m.key == 'choice_inflation' for m in active_mutations):
+                        if len(choices) < 6:
+                            # Pad with extra choices
+                            extra_choices = [
+                                "Take the less obvious path",
+                                "Reconsider your options",
+                                "Try something unexpected",
+                                "Look for another way",
+                                "Wait and observe",
+                                "Act on instinct",
+                                "Question everything",
+                                "Trust your gut"
+                            ]
+                            while len(choices) < 6:
+                                choices.append(random.choice([c for c in extra_choices if c not in choices]))
+                    
+                    # Choice Drought - limit to 2 choices
+                    elif any(m.key == 'choice_drought' for m in active_mutations):
+                        choices = choices[:2]
+                    
+                    # Hidden Choice - replace one choice with corrupted text
+                    elif any(m.key == 'hidden_choice' for m in active_mutations):
+                        if len(choices) >= 3:
+                            hidden_idx = random.randint(0, len(choices) - 1)
+                            choices[hidden_idx] = "░░░░░░░░░░░░░░░░"
+                    
+                    # Reverse Choices - reverse the order
+                    elif any(m.key == 'reverse_choices' for m in active_mutations):
+                        choices = list(reversed(choices))
+                    
+                    # Duplicate Choices - make choices similar/identical
+                    elif any(m.key == 'duplicate_choices' for m in active_mutations):
+                        if len(choices) >= 3:
+                            base_choice = choices[0]
+                            choices[1] = base_choice + "."
+                            choices[2] = base_choice + " "
+                    
+                    # Forced Random - auto-select a choice
+                    elif any(m.key == 'forced_random' for m in active_mutations):
+                        auto_choice = random.randint(0, len(choices) - 1)
+                        self.renderer.console.print(f"\n[bold red]The narrator makes the choice for you.[/]\n")
+                        time.sleep(1.5)
+                        choice_idx = auto_choice
+                        chosen_text = choices[choice_idx]
+                        # Skip normal input
+                        self.renderer.console.print(f"[dim]> {choice_idx + 1}[/]\n")
+                        time.sleep(1.0)
+                    
+                    # Temporal Loop - repeat previous choices
+                    elif any(m.key == 'temporal_loop' for m in active_mutations):
+                        if len(self.story.choice_history) >= 3:
+                            choices = self.story.choice_history[-3:]
+                            self.renderer.console.print(f"\n[dim italic yellow]You've done this before...[/]\n")
+                    
+                    # Show choices (unless forced_random already handled it)
+                    if not any(m.key == 'forced_random' for m in active_mutations):
+                        self.renderer.show_choices(choices, intensity)
                     
                     # Get player input (with secret word detection)
-                    def secret_check(input_text):
-                        return self.truth.process_secret_input(
-                            input_text,
-                            context['hidden_stats']['sanity'],
-                            context['choice_count']
-                        )
-                    
-                    choice_idx = self.renderer.get_choice_input(len(choices), secret_check)
-                    chosen_text = choices[choice_idx]
+                    # Unless forced_random already set it
+                    if not any(m.key == 'forced_random' for m in active_mutations):
+                        def secret_check(input_text):
+                            return self.truth.process_secret_input(
+                                input_text,
+                                context['hidden_stats']['sanity'],
+                                context['choice_count']
+                            )
+                        
+                        choice_idx = self.renderer.get_choice_input(len(choices), secret_check)
+                        chosen_text = choices[choice_idx]
                 
                 # Check for choice patterns
                 pattern_response = self.truth.detect_choice_pattern(choice_idx + 1)
