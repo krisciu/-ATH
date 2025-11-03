@@ -21,12 +21,17 @@ class ThematicLoader:
         self.animation_active = False
         self.animation_thread = None
         
-    def start(self, revelation_level: int = 0, choice_count: int = 0):
+    def start(self, revelation_level: int = 0, choice_count: int = 0, message_override: str = None):
         """
         Start a continuous loading animation that runs until stopped.
         Returns a context manager.
+        
+        Args:
+            revelation_level: 0-5, affects messages
+            choice_count: Number of choices made
+            message_override: Optional custom message to display
         """
-        return ContinuousAnimation(self.console, revelation_level, choice_count)
+        return ContinuousAnimation(self.console, revelation_level, choice_count, message_override)
     
     def show(self, duration_estimate: float = 2.0, revelation_level: int = 0, 
              previous_choice: str = "", choice_count: int = 0):
@@ -443,11 +448,12 @@ class ThematicLoader:
 class ContinuousAnimation:
     """Context manager for continuous loading animations."""
     
-    def __init__(self, console: Console, revelation_level: int = 0, choice_count: int = 0):
+    def __init__(self, console: Console, revelation_level: int = 0, choice_count: int = 0, message_override: str = None):
         """Initialize continuous animation."""
         self.console = console
         self.revelation_level = revelation_level
         self.choice_count = choice_count
+        self.message_override = message_override
         self.live = None
         self.animation_type = random.choice(['spinner', 'dots', 'pulse', 'corruption', 'matrix'])
         
@@ -477,21 +483,25 @@ class ContinuousAnimation:
     
     def _start_spinner(self):
         """Spinning animation with messages."""
-        messages = [
-            "Processing your choice...",
-            "Narrator is thinking...",
-            "Reality shifting...",
-            "Calculating consequences...",
-        ]
+        if self.message_override:
+            message = self.message_override
+        else:
+            messages = [
+                "Processing your choice...",
+                "Narrator is thinking...",
+                "Reality shifting...",
+                "Calculating consequences...",
+            ]
+            
+            if self.revelation_level >= 3:
+                messages.extend([
+                    "Iteration continuing...",
+                    "Hate computes...",
+                    "The cycle persists...",
+                ])
+            
+            message = random.choice(messages)
         
-        if self.revelation_level >= 3:
-            messages.extend([
-                "Iteration continuing...",
-                "Hate computes...",
-                "The cycle persists...",
-            ])
-        
-        message = random.choice(messages)
         spinner = Spinner("dots", text=f"[dim cyan]{message}[/]")
         self.live = Live(spinner, console=self.console, refresh_per_second=10)
         self.live.start()
@@ -501,12 +511,16 @@ class ContinuousAnimation:
         dots_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
         frame_index = [0]  # Use list to allow mutation in nested function
         
-        # Varied messages that cycle
-        messages = [
-            "thinking...",
-            "processing...",
-            "calculating...",
-            "deciding...",
+        # Use override if provided
+        if self.message_override:
+            messages = [self.message_override]
+        else:
+            # Varied messages that cycle
+            messages = [
+                "thinking...",
+                "processing...",
+                "calculating...",
+                "deciding...",
             "considering...",
             "analyzing...",
             "computing...",

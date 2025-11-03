@@ -194,17 +194,25 @@ class Game:
                     context['hidden_stats']['trust']
                 )
                 
-                # Generate and show ASCII art at key moments
-                art = self.ai.generate_art_for_context(context)
-                if art:
-                    self.loader.show_art_loading("visual manifestation")
-                    self.renderer.console.print("\n")
-                    # Apply corruption to art if sanity is low
-                    if context['hidden_stats']['sanity'] < 3:
-                        art = self.typography.apply_glitch(art, 0.1)
-                    self.renderer.console.print(art, style="bold yellow", justify="center")
-                    self.renderer.console.print("\n")
-                    time.sleep(1.5)
+                # Generate and show ASCII art at key moments (seamlessly integrated)
+                art = None
+                if self.ai.should_generate_art(context):
+                    # Generate art within loading state (seamless)
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count'], message_override="manifesting..."):
+                        art = self.ai.generate_ascii_art(
+                            self.ai._get_art_subject(context),
+                            self.ai._get_art_mood(context),
+                            context['hidden_stats']['sanity']
+                        )
+                    
+                    if art:
+                        self.renderer.console.print("\n")
+                        # Apply corruption to art if sanity is low
+                        if context['hidden_stats']['sanity'] < 3:
+                            art = self.typography.apply_glitch(art, 0.1)
+                        self.renderer.console.print(art, style="bold yellow", justify="center")
+                        self.renderer.console.print("\n")
+                        time.sleep(1.5)
                 
                 # Display narrative (always use opening which contains current AI response)
                 narrative = opening.get('narrative', '')
