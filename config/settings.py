@@ -58,3 +58,17 @@ REVELATION_THRESHOLDS = {
     'time_milestone_minutes': 109,  # The sacred number
 }
 
+# Scenario System (story variety)
+SCENARIO_VARIETY_MEMORY = 3  # Track last N scenarios to avoid repeats
+THEME_CONSISTENCY = True  # Maintain theme throughout session
+
+# Event Pacing (forced progression)
+EVENT_FREQUENCY = 2  # Force event every N choices
+DISCOVERY_RATE = 3  # Major revelation every N choices
+
+# Mutation System (rule-breaking)
+MUTATION_BASE_CHANCE = 0.05  # 5% base per turn
+MUTATION_COOLDOWN = (3, 6)  # Choices between mutations
+MUTATION_GUARANTEED_AT = [7, 15, 23]  # Specific choice numbers
+WILD_MUTATIONS_AT_REVELATION = 3  # Unlock wild mutations at this revelation level
+

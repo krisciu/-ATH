@@ -84,7 +84,12 @@ Outputs (in `dist/`):
   ```
 - `README.txt` – quick reference for the bundle
 
-The launcher installs to `~/.ATH` and caches the bundle in `~/.cache/tildeath`. The Anthropic key from `anthropic_key.txt` is embedded in the launcher stub so you can revoke it later without touching the bundle.
+The launcher installs to `~/.ATH` and caches the bundle in `~/.cache/tildeath`. Embed a temporary sharing key with `--api-key-file`; players can swap to their own at any time with:
+
+```bash
+~/.ATH --configure
+# or export ANTHROPIC_API_KEY before launching
+```
 
 ### Option 1: GitHub Release (Recommended)
 

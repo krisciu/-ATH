@@ -106,6 +106,25 @@ def get_scene_generation_prompt(context):
     # Add revelation context if present
     revelation_hint = f"\n\n{revelation_context}" if revelation_context else ""
     
+    # Event urgency and tracking
+    event_urgency = context.get('event_urgency', False)
+    recent_discoveries = context.get('recent_discoveries', [])
+    active_threats = context.get('active_threats', [])
+    
+    # Scenario/theme constraints if present
+    scenario_constraints = context.get('scenario_constraints', '')
+    
+    # Build event progression section
+    event_section = ""
+    if event_urgency:
+        event_section = "\n\n⚠ EVENT REQUIRED: Something concrete MUST happen this turn (chase escalates, transformation occurs, discovery made, threat manifests)"
+    
+    if recent_discoveries:
+        event_section += f"\nRecent discoveries: {', '.join(recent_discoveries)} - build on these, don't repeat"
+    
+    if active_threats:
+        event_section += f"\nActive threats: {', '.join(active_threats)} - advance these, make them more urgent"
+    
     prompt = f"""PREVIOUS CONTEXT: {recent_narrative}
 
 PLAYER'S LAST CHOICE: {previous_choice}
@@ -122,7 +141,14 @@ HIDDEN NARRATIVE STATE (use this to influence your tone, the player cannot see t
 
 STYLE INSTRUCTIONS: {style_instructions}{revelation_hint}
 
-Generate the next scene and 2-4 choices based on their decision. Continue the narrative naturally."""
+{scenario_constraints}
+
+PROGRESSION REQUIREMENTS:
+- Every 2-3 choices: Major event must occur (chase sequence, transformation, discovery, confrontation)
+- AVOID: Vague atmosphere, "you sense something", unclear spaces, wandering
+- REQUIRE: Specific actions, visible changes, tangible threats, concrete events{event_section}
+
+Generate the next scene and 2-4 choices based on their decision. Make something happen."""
     
     return prompt
 
@@ -198,8 +224,16 @@ Constraints: Maximum 15 lines wide, 10 lines tall. Use only ASCII characters.
 {corruption}
 Output ONLY the ASCII art, no explanations or markdown code blocks."""
 
-def get_opening_scene_prompt():
-    """Special prompt for the game's opening."""
+def get_opening_scene_prompt(scenario_data=None):
+    """
+    Special prompt for the game's opening.
+    If scenario_data provided, uses that. Otherwise uses default mysterious opening.
+    """
+    if scenario_data:
+        # Use scenario-specific opening
+        return scenario_data.get('opening_prompt', '')
+    
+    # Default opening if no scenario provided
     return """Generate the opening scene for a literary horror CYOA game called ~ATH.
 
 THE BEGINNING:

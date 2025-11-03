@@ -24,6 +24,12 @@ class StoryEngine:
         self.current_narrative = ""
         self.instability_level = 0
         self.last_danger_level = 'none'  # Track for consequence feedback
+        
+        # Event tracking for forced progression
+        self.event_timer = 0  # Forces event every 2-3 choices
+        self.discoveries: List[str] = []  # Track what's been revealed
+        self.active_threats: List[str] = []  # Ongoing dangers
+        self.transformations: List[str] = []  # Body/reality changes
     
     def process_choice(self, choice_text: str, choice_index: int) -> Dict:
         """Process a player choice and modify stats."""
@@ -32,6 +38,9 @@ class StoryEngine:
         
         # Store last danger level for feedback
         self.last_danger_level = 'none'
+        
+        # Increment event timer for forced progression
+        self.event_timer += 1
         
         # Modify stats based on choice characteristics
         self._apply_choice_effects(choice_text, choice_index)
@@ -147,12 +156,30 @@ class StoryEngine:
             'recent_narrative': self.current_narrative,
             'instability_level': self.instability_level,
             'visual_intensity': self.get_visual_intensity(),
-            'event_flags': self.event_flags.copy()
+            'event_flags': self.event_flags.copy(),
+            # Event tracking for forced progression
+            'event_urgency': self.event_timer >= 2,  # Signal AI to make something happen
+            'recent_discoveries': self.discoveries[-3:] if self.discoveries else [],
+            'active_threats': self.active_threats.copy(),
+            'transformations': self.transformations.copy(),
         }
     
     def set_narrative(self, narrative: str):
         """Update current narrative text."""
         self.current_narrative = narrative
+    
+    def record_event(self, event_type: str, description: str):
+        """Record an event occurrence and reset timer."""
+        if event_type == "discovery":
+            self.discoveries.append(description)
+        elif event_type == "threat":
+            if description not in self.active_threats:
+                self.active_threats.append(description)
+        elif event_type == "transformation":
+            self.transformations.append(description)
+        
+        # Reset event timer
+        self.event_timer = 0
     
     def _assess_choice_danger(self, choice_text: str) -> str:
         """

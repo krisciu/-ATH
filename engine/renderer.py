@@ -345,4 +345,65 @@ Session ended.
         elif moment_type == "whisper":
             # Very small/dim
             self.console.print(f"\n  {text.lower()}\n", style="dim italic")
+    
+    def show_scenario_title(self, scenario_art: str):
+        """Display scenario announcement with ASCII art."""
+        self.console.print(scenario_art, style="bold cyan", justify="center")
+        time.sleep(1.5)
+    
+    def show_mutation_announcement(self, mutation):
+        """Display mutation announcement."""
+        # Visual glitch effect
+        glitch_chars = ['█', '▓', '▒', '░']
+        glitch_line = ''.join(random.choice(glitch_chars) for _ in range(40))
+        
+        self.console.print(f"\n{glitch_line}", style="red")
+        time.sleep(0.3)
+        self.console.print(f"[bold red]{mutation.announcement}[/]", justify="center")
+        time.sleep(0.5)
+        self.console.print(f"[dim yellow]{mutation.description}[/]", justify="center")
+        time.sleep(0.3)
+        self.console.print(f"{glitch_line}\n", style="red")
+    
+    def show_narrator_split(self, narrative1: str, narrative2: str):
+        """Show two narrators arguing in columns."""
+        table = Table(show_header=True, header_style="bold", box=box.SIMPLE)
+        table.add_column("Narrator A", style="cyan", width=35)
+        table.add_column("Narrator B", style="magenta", width=35)
+        
+        # Split narratives into chunks
+        words1 = narrative1.split()
+        words2 = narrative2.split()
+        
+        chunk1 = ' '.join(words1[:30]) if len(words1) > 30 else narrative1
+        chunk2 = ' '.join(words2[:30]) if len(words2) > 30 else narrative2
+        
+        table.add_row(chunk1, chunk2)
+        
+        self.console.print("\n[bold red][TWO VOICES DETECTED][/]\n")
+        self.console.print(table)
+        self.console.print("[dim](both claim to be the narrator)[/]\n")
+    
+    def show_format_corruption(self, text: str, corruption_type: str):
+        """Display text in corrupted formats."""
+        if corruption_type == "poetry":
+            lines = text.split('. ')
+            self.console.print("\n[dim cyan][POETRY MODE][/]")
+            for line in lines:
+                self.console.print(f"  {line}")
+                time.sleep(0.2)
+            self.console.print()
+        
+        elif corruption_type == "code":
+            self.console.print("\n[dim green][CODE MODE][/]")
+            self.console.print(f"// NARRATIVE_BUFFER\nstd::string story = \"{text[:60]}...\";\n// CONTINUE")
+        
+        elif corruption_type == "error":
+            self.console.print("\n[bold red][ERROR LOG][/]")
+            self.console.print(f"ERROR 0x7F9A: {text[:50]}...\n[STACK TRACE CORRUPTED]")
+        
+        elif corruption_type == "ascii":
+            # Heavy ASCII glitching
+            glitched = ''.join(random.choice(['█', '▓', '▒', '░', c]) if random.random() < 0.4 else c for c in text)
+            self.console.print(f"\n{glitched}\n", style="yellow")
 

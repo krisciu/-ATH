@@ -45,7 +45,8 @@ class SessionManager:
                 "truth_tracker": {}
             }
     
-    def save_ghost_memory(self, choices: List[str], final_state: Dict, truth_state: Optional[Dict] = None):
+    def save_ghost_memory(self, choices: List[str], final_state: Dict, truth_state: Optional[Dict] = None, 
+                          scenario_used: Optional[str] = None, mutations_encountered: Optional[List[str]] = None):
         """Save cryptic fragments for next session."""
         # Hash choices to obscure them
         choice_hashes = [hashlib.md5(c.encode()).hexdigest()[:8] for c in choices[-5:]]
@@ -74,13 +75,25 @@ class SessionManager:
         elif new_session_count > 109:
             fragments.append(f"iteration: {new_session_count}. persistence noted.")
         
+        # Track scenarios (last 3)
+        scenarios = self.ghost_memory.get('scenarios', [])
+        if scenario_used:
+            scenarios = (scenarios + [scenario_used])[-3:]  # Keep only last 3
+        
+        # Track mutations seen
+        mutations = self.ghost_memory.get('mutations_seen', [])
+        if mutations_encountered:
+            mutations = list(set(mutations + mutations_encountered))  # Add new ones, deduplicate
+        
         ghost_data = {
             "sessions": new_session_count,
             "fragments": fragments,
             "last_death": datetime.now().isoformat() if final_state.get('character_stats', {}).get('health', 100) <= 0 else None,
             "echoes": echoes,
             "timestamp": datetime.now().isoformat(),
-            "truth_tracker": truth_state if truth_state else self.ghost_memory.get("truth_tracker", {})
+            "truth_tracker": truth_state if truth_state else self.ghost_memory.get("truth_tracker", {}),
+            "scenarios": scenarios,
+            "mutations_seen": mutations
         }
         
         try:

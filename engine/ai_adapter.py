@@ -30,9 +30,11 @@ class AIAdapter:
         self.system_prompt = get_system_prompt()
         self.art_cache: Dict[str, str] = {}  # Cache generated art
     
-    def generate_opening(self) -> Dict[str, any]:
+    def generate_opening(self, scenario_data=None) -> Dict[str, any]:
         """Generate the opening scene of the game."""
         try:
+            opening_prompt = get_opening_scene_prompt(scenario_data)
+            
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=MAX_TOKENS,
@@ -40,7 +42,7 @@ class AIAdapter:
                 system=self.system_prompt,
                 messages=[{
                     "role": "user",
-                    "content": get_opening_scene_prompt()
+                    "content": opening_prompt
                 }]
             )
             
@@ -49,7 +51,7 @@ class AIAdapter:
             # Store in conversation history
             self.conversation_history.append({
                 "role": "user",
-                "content": get_opening_scene_prompt()
+                "content": opening_prompt
             })
             self.conversation_history.append({
                 "role": "assistant",

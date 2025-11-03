@@ -21,11 +21,11 @@ Outputs:
 from __future__ import annotations
 
 import argparse
-import os
 import shutil
 import subprocess
 import sys
 import textwrap
+import shlex
 from pathlib import Path
 
 
@@ -137,10 +137,9 @@ def write_install_stub(
     """Generate installer stub and distribution notes."""
     zipapp_url_placeholder = "<PUT_DOWNLOAD_URL_HERE>"
     default_install_path = "${HOME}/.ATH"
-    if api_key:
-        api_key_export = f'export ANTHROPIC_API_KEY="{api_key}"'
-    else:
-        api_key_export = '# export ANTHROPIC_API_KEY=your_shared_key_here'
+    default_key_line = (
+        f"DEFAULT_SHARED_KEY={shlex.quote(api_key)}" if api_key else "DEFAULT_SHARED_KEY=''"
+    )
 
     stub_contents = textwrap.dedent(
         f"""\
@@ -165,11 +164,52 @@ def write_install_stub(
 
         cat > "$INSTALL_PATH" <<'LAUNCHER'
         #!/usr/bin/env bash
+        set -euo pipefail
+
         export ATH_HOME="${{ATH_HOME:-$HOME/.tildeath}}"
         mkdir -p "$ATH_HOME"
+        CONFIG_FILE="$ATH_HOME/.env"
+        ZIPAPP_PATH="$HOME/.cache/tildeath/{artifact_name}"
+        {default_key_line}
+
+        if [ "${{1:-}}" = "--configure" ]; then
+            echo "Configure Anthropic API key for ~ATH"
+            read -r -s -p "Enter ANTHROPIC_API_KEY (leave empty to clear): " new_key
+            echo
+            if [ -n "$new_key" ]; then
+                printf 'ANTHROPIC_API_KEY=%s\n' "$new_key" > "$CONFIG_FILE"
+                echo "Saved to $CONFIG_FILE"
+            else:
+                rm -f "$CONFIG_FILE"
+                echo "Cleared stored key."
+            fi
+            exit 0
+        fi
+
+        if [ -n "${{ANTHROPIC_API_KEY:-}}" ]; then
+            :
+        elif [ -f "$CONFIG_FILE" ]; then
+            set -a
+            . "$CONFIG_FILE"
+            set +a
+        elif [ -n "$DEFAULT_SHARED_KEY" ]; then
+            export ANTHROPIC_API_KEY="$DEFAULT_SHARED_KEY"
+        fi
+
+        if [ -z "${{ANTHROPIC_API_KEY:-}}" ]; then
+            cat <<'EOF' >&2
+Missing ANTHROPIC_API_KEY.
+
+Provide one with:
+  1. ~/.ATH --configure
+  2. export ANTHROPIC_API_KEY=your_key_here
+  3. Editing $CONFIG_FILE manually
+EOF
+            exit 1
+        fi
+
         cd "$ATH_HOME"
-        {api_key_export}
-        exec "$HOME/.cache/tildeath/{artifact_name}" "$@"
+        exec "$ZIPAPP_PATH" "$@"
         LAUNCHER
 
         chmod +x "$INSTALL_PATH"
@@ -201,6 +241,10 @@ def write_install_stub(
 
         After install, users can launch the game with:
             ~/.ATH
+
+        Users can swap keys any time:
+            ~/.ATH --configure   # prompts for a new key
+        or by exporting ANTHROPIC_API_KEY before running the launcher.
 
         The launcher stores runtime artifacts in $HOME/.tildeath and reuses the cached zipapp.
         """
