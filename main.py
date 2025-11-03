@@ -82,9 +82,9 @@ class Game:
             scenario_art = self.scenario_gen.get_scenario_title_art()
             self.renderer.show_scenario_title(scenario_art)
             
-            # Generate opening scene with scenario
-            self.loader.show(duration_estimate=1.5, revelation_level=0, previous_choice="", choice_count=0)
-            opening = self.ai.generate_opening(scenario_data)
+            # Generate opening scene with scenario (with continuous animation)
+            with self.loader.start(revelation_level=0, choice_count=0):
+                opening = self.ai.generate_opening(scenario_data)
             
             if not opening.get('error'):
                 self.story.set_narrative(opening['narrative'])
@@ -130,10 +130,10 @@ class Game:
                     self.renderer.console.print(f"\nChoices made: {context['choice_count']}")
                     self.renderer.console.print(f"Revelation level: {self.truth.revelation_level}/5")
                     
-                    # Narrator's final comment
+                    # Narrator's final comment (no attribution - just the voice)
                     final_comment = self.narrator.get_ending_comment(ending.type, context)
                     if final_comment:
-                        self.renderer.console.print(f"\nThe narrator: '{final_comment}'")
+                        self.renderer.console.print(f"\n[dim italic]{final_comment}[/]")
                     
                     self.renderer.console.print(f"\n{'='*60}\n")
                     time.sleep(2.0)
@@ -330,25 +330,22 @@ class Game:
                     self.renderer.console.print(f"\n[bold red]That was... unwise.[/]")
                     time.sleep(1.2)
                 
-                # Generate next scene with revelation context
-                # Use thematic loader instead of simple loading
-                self.loader.show(
-                    duration_estimate=2.0,
-                    revelation_level=self.truth.revelation_level,
-                    previous_choice=chosen_text,
-                    choice_count=context['choice_count']
-                )
-                
-                # Add revelation modifiers to context
+                # Generate next scene with revelation context (with continuous animation)
                 current_context = self.story.get_context()
                 current_context['revelation_level'] = self.truth.revelation_level
                 revelation_mods = get_revelation_modifiers(self.truth.revelation_level, breadcrumb_active)
                 current_context['revelation_context'] = revelation_mods
                 
-                next_scene = self.ai.generate_scene(current_context)
+                with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                    next_scene = self.ai.generate_scene(current_context)
                 
                 if next_scene.get('error'):
                     self.renderer.show_error_glitch(next_scene['narrative'])
+                
+                # Apply AI-generated consequences
+                if 'consequences' in next_scene:
+                    consequences = next_scene['consequences']
+                    self.story.apply_ai_consequences(consequences)
                 
                 # Update narrative for next iteration  
                 self.story.set_narrative(next_scene.get('narrative', ''))

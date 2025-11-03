@@ -144,7 +144,7 @@ class AIAdapter:
 """
     
     def _parse_response(self, content: str) -> Dict[str, any]:
-        """Parse AI response into narrative and choices."""
+        """Parse AI response into narrative, consequences, and choices."""
         # Debug: log if content is suspiciously short
         if len(content) < 50:
             print(f"[DEBUG] Short AI response: {content[:100]}")
@@ -152,6 +152,7 @@ class AIAdapter:
         lines = content.split('\n')
         narrative = ""
         choices = []
+        consequences = {'health': 0, 'sanity': 0, 'courage': 0}
         
         current_section = None
         
@@ -161,10 +162,23 @@ class AIAdapter:
             if line.startswith('NARRATIVE:'):
                 current_section = 'narrative'
                 narrative = line.replace('NARRATIVE:', '').strip()
+            elif line.startswith('CONSEQUENCES:'):
+                current_section = 'consequences'
             elif line.startswith('CHOICES:'):
                 current_section = 'choices'
-            elif current_section == 'narrative' and line and not line.startswith('CHOICES'):
+            elif current_section == 'narrative' and line and not line.startswith(('CONSEQUENCES', 'CHOICES')):
                 narrative += ' ' + line
+            elif current_section == 'consequences' and line:
+                # Parse consequence lines like "health: -15"
+                if ':' in line:
+                    stat, value = line.split(':', 1)
+                    stat = stat.strip().lower()
+                    try:
+                        value = int(value.strip())
+                        if stat in consequences:
+                            consequences[stat] = value
+                    except ValueError:
+                        pass  # Ignore malformed consequence lines
             elif current_section == 'choices' and line:
                 # Remove numbering like "1. " or "- "
                 choice = line.lstrip('0123456789.-) ').strip()
@@ -228,6 +242,7 @@ class AIAdapter:
         return {
             "narrative": narrative.strip(),
             "choices": choices[:4],  # Max 4 choices
+            "consequences": consequences,
             "error": False
         }
     

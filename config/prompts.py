@@ -170,7 +170,29 @@ CHOICE DESIGN (Classic CYOA):
   * "Trust the entity that just lied to you"
 - Normal choices should remain ambiguous/reasonable
 
-Generate the next scene and 2-4 choices based on their decision. Make something happen."""
+CRITICAL OUTPUT FORMAT:
+Generate your response in this EXACT format:
+
+NARRATIVE:
+[Write 3-5 sentences describing what happens based on their choice]
+
+CONSEQUENCES:
+health: [number from -50 to +10, or 0 for no change]
+sanity: [number from -3 to +1, or 0 for no change]
+courage: [number from -3 to +3, or 0 for no change]
+
+CHOICES:
+1. [First choice]
+2. [Second choice]
+3. [Third choice - optional]
+4. [Fourth choice - optional]
+
+IMPORTANT: 
+- If the narrative describes injury/pain/damage, set negative health
+- If the narrative describes horror/fear/confusion, set negative sanity
+- If the narrative describes bravery/cowardice, adjust courage
+- If nothing harmful happens in the narrative, consequences should be 0 or minimal
+- Make consequences match what actually happens in the narrative!"""
     
     return prompt
 

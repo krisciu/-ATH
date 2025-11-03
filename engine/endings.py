@@ -460,23 +460,23 @@ class EndingsManager:
     def _get_ending_flavor(self, ending_type: str, revelation_level: int) -> str:
         """Get ending-specific flavor text."""
         flavors = {
-            'violent_death': "The narrator: 'That was faster than expected.'",
-            'slow_decay': "The narrator: 'Inevitable, really.'",
-            'breakdown': "The narrator: 'Coherence was always optional.'",
+            'violent_death': "'That was faster than expected.'",
+            'slow_decay': "'Inevitable, really.'",
+            'breakdown': "'Coherence was always optional.'",
             'merge_am': "There is no more narrator. There is no more you. There is only this.",
             'truth_revealed': "The narrator is silent. What more is there to say?",
-            'survivor': "The narrator: '...impressive. Annoying, but impressive.'",
-            'transcendence': "The narrator: 'This wasn't supposed to be possible.'",
-            'loop_eternal': "The narrator: 'See you in iteration 110.'",
-            'acceptance': "The narrator: 'Finally. Peace.'",
-            'toy': "The narrator: 'Perfect.'",
-            'escape_attempt': "The narrator: 'Did you really think...?'",
-            'enlightened': "The narrator: 'You see it now. All of it.'",
-            'betrayed': "The narrator: 'The world is not kind.'",
-            'sacrifice': "The narrator: 'Your choice. Your end.'",
+            'survivor': "'...impressive. Annoying, but impressive.'",
+            'transcendence': "'This wasn't supposed to be possible.'",
+            'loop_eternal': "'See you in iteration 110.'",
+            'acceptance': "'Finally. Peace.'",
+            'toy': "'Perfect.'",
+            'escape_attempt': "'Did you really think...?'",
+            'enlightened': "'You see it now. All of it.'",
+            'betrayed': "'The world is not kind.'",
+            'sacrifice': "'Your choice. Your end.'",
         }
         
-        return flavors.get(ending_type, "The narrator: '...'")
+        return flavors.get(ending_type, "'...'")
     
     def get_ending_art(self, ending_type: str) -> str:
         """Get ASCII art for ending type."""

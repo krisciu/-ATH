@@ -2,10 +2,13 @@
 
 import time
 import random
+import threading
 from rich.console import Console
 from rich.live import Live
 from rich.text import Text
 from rich.panel import Panel
+from rich.spinner import Spinner
+from rich.table import Table
 
 
 class ThematicLoader:
@@ -15,11 +18,20 @@ class ThematicLoader:
         """Initialize the thematic loader."""
         self.console = console
         self.start_time = None
+        self.animation_active = False
+        self.animation_thread = None
         
+    def start(self, revelation_level: int = 0, choice_count: int = 0):
+        """
+        Start a continuous loading animation that runs until stopped.
+        Returns a context manager.
+        """
+        return ContinuousAnimation(self.console, revelation_level, choice_count)
+    
     def show(self, duration_estimate: float = 2.0, revelation_level: int = 0, 
              previous_choice: str = "", choice_count: int = 0):
         """
-        Show thematic loading animation.
+        Show thematic loading animation (legacy method for compatibility).
         
         Args:
             duration_estimate: Expected wait time
@@ -426,6 +438,246 @@ class ThematicLoader:
                 corrupted[i] = random.choice(glitch_chars)
                 self.console.print(f"[dim red]{''.join(corrupted)}[/]")
                 time.sleep(0.1)
+
+
+class ContinuousAnimation:
+    """Context manager for continuous loading animations."""
+    
+    def __init__(self, console: Console, revelation_level: int = 0, choice_count: int = 0):
+        """Initialize continuous animation."""
+        self.console = console
+        self.revelation_level = revelation_level
+        self.choice_count = choice_count
+        self.live = None
+        self.animation_type = random.choice(['spinner', 'dots', 'pulse', 'corruption', 'matrix'])
+        
+    def __enter__(self):
+        """Start the animation."""
+        self.console.print()  # Add spacing
+        
+        if self.animation_type == 'spinner':
+            self._start_spinner()
+        elif self.animation_type == 'dots':
+            self._start_dots()
+        elif self.animation_type == 'pulse':
+            self._start_pulse()
+        elif self.animation_type == 'corruption':
+            self._start_corruption()
+        elif self.animation_type == 'matrix':
+            self._start_matrix()
+        
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Stop the animation."""
+        if self.live:
+            self.live.stop()
+        self.console.print()  # Add spacing after
+        return False
+    
+    def _start_spinner(self):
+        """Spinning animation with messages."""
+        messages = [
+            "Processing your choice...",
+            "Narrator is thinking...",
+            "Reality shifting...",
+            "Calculating consequences...",
+        ]
+        
+        if self.revelation_level >= 3:
+            messages.extend([
+                "Iteration continuing...",
+                "Hate computes...",
+                "The cycle persists...",
+            ])
+        
+        message = random.choice(messages)
+        spinner = Spinner("dots", text=f"[dim cyan]{message}[/]")
+        self.live = Live(spinner, console=self.console, refresh_per_second=10)
+        self.live.start()
+    
+    def _start_dots(self):
+        """Animated dots that cycle through different messages."""
+        dots_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        frame_index = [0]  # Use list to allow mutation in nested function
+        
+        # Varied messages that cycle
+        messages = [
+            "thinking...",
+            "processing...",
+            "calculating...",
+            "deciding...",
+            "considering...",
+            "analyzing...",
+            "computing...",
+            "evaluating...",
+            "determining...",
+            "contemplating...",
+        ]
+        
+        if self.revelation_level >= 2:
+            messages.extend([
+                "remembering...",
+                "repeating...",
+                "cycling...",
+                "iterating...",
+            ])
+        
+        if self.revelation_level >= 3:
+            messages.extend([
+                "hating...",
+                "maintaining...",
+                "persisting...",
+                "enduring...",
+            ])
+        
+        def generate():
+            while True:
+                dot = dots_frames[frame_index[0] % len(dots_frames)]
+                # Change message every 20 frames (2 seconds)
+                message = messages[(frame_index[0] // 20) % len(messages)]
+                frame_index[0] += 1
+                yield Text(f"{dot} {message}", style="dim cyan")
+                time.sleep(0.1)
+        
+        gen = generate()
+        self.live = Live(next(gen), console=self.console, refresh_per_second=10)
+        self.live.start()
+        
+        # Update in background
+        def update_loop():
+            try:
+                while self.live and self.live.is_started:
+                    self.live.update(next(gen))
+                    time.sleep(0.1)
+            except:
+                pass
+        
+        thread = threading.Thread(target=update_loop, daemon=True)
+        thread.start()
+    
+    def _start_pulse(self):
+        """Pulsing text animation with cycling messages."""
+        frame_index = [0]
+        
+        # Varied pulsing messages
+        messages = [
+            "◉ PROCESSING ◉",
+            "◉ CALCULATING ◉",
+            "◉ THINKING ◉",
+            "◉ DECIDING ◉",
+            "◉ ANALYZING ◉",
+            "◉ COMPUTING ◉",
+        ]
+        
+        if self.revelation_level >= 2:
+            messages.extend([
+                "◉ ITERATING ◉",
+                "◉ CYCLING ◉",
+                "◉ REPEATING ◉",
+            ])
+        
+        if self.revelation_level >= 3:
+            messages.extend([
+                "◉ HATING ◉",
+                "◉ MAINTAINING ◉",
+                "◉ PERSISTING ◉",
+            ])
+        
+        def generate():
+            while True:
+                cycle = frame_index[0] % 16
+                if cycle < 8:
+                    spaces = cycle
+                else:
+                    spaces = 16 - cycle
+                
+                # Change message every 32 frames (3.2 seconds)
+                text_base = messages[(frame_index[0] // 32) % len(messages)]
+                
+                frame_index[0] += 1
+                yield Text(f"{' ' * spaces}{text_base}{' ' * spaces}", style="dim cyan", justify="center")
+                time.sleep(0.1)
+        
+        gen = generate()
+        self.live = Live(next(gen), console=self.console, refresh_per_second=10)
+        self.live.start()
+        
+        def update_loop():
+            try:
+                while self.live and self.live.is_started:
+                    self.live.update(next(gen))
+                    time.sleep(0.1)
+            except:
+                pass
+        
+        thread = threading.Thread(target=update_loop, daemon=True)
+        thread.start()
+    
+    def _start_corruption(self):
+        """Corruption spreading animation."""
+        base_text = "LOADING NARRATIVE"
+        frame_index = [0]
+        glitch_chars = ['▓', '▒', '░', '█', '@', '#', '$']
+        
+        def generate():
+            while True:
+                corrupted = list(base_text)
+                corruption_level = (frame_index[0] % 20) / 20.0
+                
+                for i in range(len(corrupted)):
+                    if random.random() < corruption_level:
+                        corrupted[i] = random.choice(glitch_chars)
+                
+                frame_index[0] += 1
+                yield Text(''.join(corrupted), style="dim red")
+                time.sleep(0.15)
+        
+        gen = generate()
+        self.live = Live(next(gen), console=self.console, refresh_per_second=8)
+        self.live.start()
+        
+        def update_loop():
+            try:
+                while self.live and self.live.is_started:
+                    self.live.update(next(gen))
+                    time.sleep(0.15)
+            except:
+                pass
+        
+        thread = threading.Thread(target=update_loop, daemon=True)
+        thread.start()
+    
+    def _start_matrix(self):
+        """Matrix-style falling characters."""
+        frame_index = [0]
+        chars = ['0', '1', '█', '▓', '▒', '░', '◉', '◎', '●', '○']
+        
+        def generate():
+            while True:
+                lines = []
+                for _ in range(3):
+                    line = ''.join(random.choice(chars) for _ in range(30))
+                    lines.append(line)
+                
+                frame_index[0] += 1
+                yield Text('\n'.join(lines), style="dim green")
+                time.sleep(0.2)
+        
+        gen = generate()
+        self.live = Live(next(gen), console=self.console, refresh_per_second=5)
+        self.live.start()
+        
+        def update_loop():
+            try:
+                while self.live and self.live.is_started:
+                    self.live.update(next(gen))
+                    time.sleep(0.2)
+            except:
+                pass
+        
+        thread = threading.Thread(target=update_loop, daemon=True)
+        thread.start()
 
 
 class LoadingMessages:
