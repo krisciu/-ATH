@@ -827,24 +827,59 @@ class MutationManager:
         Check if mutations should occur this turn.
         Returns list of active mutations (can be multiple with stacking).
         """
+        from engine.debug import debug_log
+        
+        choice_count = context.get('choice_count', 0)
+        
+        # DEBUG OUTPUT
+        debug_log(f"\n[DEBUG MUTATION] Turn {choice_count}: Checking mutations...")
+        debug_log(f"[DEBUG MUTATION] Active mutations: {len(self.active_mutations)}")
+        debug_log(f"[DEBUG MUTATION] Cooldown: {self.cooldown}")
+        
         # Update existing mutations
         self._update_active_mutations()
         
         # Decrement cooldown
         if self.cooldown > 0:
             self.cooldown -= 1
+            debug_log(f"[DEBUG MUTATION] Cooldown decremented to {self.cooldown}")
         
-        # Check if we should add a new mutation
-        if self.cooldown == 0:
+        # GUARANTEED MUTATIONS - Import from settings
+        from config.settings import MUTATION_GUARANTEED_AT
+        
+        debug_log(f"[DEBUG MUTATION] Guaranteed turns: {MUTATION_GUARANTEED_AT}")
+        
+        # Force mutation on guaranteed turns (even if cooldown active)
+        if choice_count in MUTATION_GUARANTEED_AT:
+            debug_log(f"[DEBUG MUTATION] GUARANTEED TURN! Forcing mutation...")
+            new_mutation = self._try_trigger_mutation(context)
+            if not new_mutation:  # If random failed, force one
+                debug_log(f"[DEBUG MUTATION] Random failed, forcing mutation...")
+                new_mutation = self._force_mutation(context)
+            if new_mutation:
+                debug_log(f"[DEBUG MUTATION] ✓ Activated: {new_mutation.name}")
+                self._activate_mutation(new_mutation)
+                # Don't set cooldown after guaranteed mutations!
+                self.cooldown = 0
+        elif self.cooldown == 0:
+            # Normal mutation check
+            debug_log(f"[DEBUG MUTATION] Cooldown at 0, trying random mutation...")
             new_mutation = self._try_trigger_mutation(context)
             if new_mutation:
+                debug_log(f"[DEBUG MUTATION] ✓ Activated: {new_mutation.name}")
                 self._activate_mutation(new_mutation)
+            else:
+                debug_log(f"[DEBUG MUTATION] Random check failed")
+        else:
+            debug_log(f"[DEBUG MUTATION] Skipping (cooldown: {self.cooldown})")
         
         # Check for combos
         self._check_combos()
         
         # Return all currently active mutations
-        return [m for m, _, _ in self.active_mutations]
+        active = [m for m, _, _ in self.active_mutations]
+        debug_log(f"[DEBUG MUTATION] Returning {len(active)} active mutations: {[m.name for m in active]}")
+        return active
     
     def _update_active_mutations(self):
         """Update durations and states of active mutations."""
@@ -874,35 +909,44 @@ class MutationManager:
         revelation_level = context.get('revelation_level', 0)
         instability = context.get('instability_level', 0)
         
-        # Escalating frequency based on game progress
+        # Escalating frequency based on game progress - MUCH HIGHER CHANCES
         if choice_count <= 3:
-            # Very early game: 10% chance, COMMON MODERATE only
-            base_chance = 0.10
+            # Very early game: 40% chance (was 10%), COMMON MODERATE only
+            base_chance = 0.40
             pool = [m for m in self.MODERATE_MUTATIONS if m.rarity == MutationRarity.COMMON]
         elif choice_count <= 8:
-            # Early game: 20% chance, all MODERATE
-            base_chance = 0.20
+            # Early game: 50% chance (was 20%), all MODERATE
+            base_chance = 0.50
             pool = self.MODERATE_MUTATIONS.copy()
         elif choice_count <= 15:
-            # Mid game: 30% chance, MODERATE + UNCOMMON WILD
-            base_chance = 0.30
+            # Mid game: 60% chance (was 30%), MODERATE + UNCOMMON WILD
+            base_chance = 0.60
             pool = self.MODERATE_MUTATIONS.copy()
             pool.extend([m for m in self.WILD_MUTATIONS if m.rarity in [MutationRarity.COMMON, MutationRarity.UNCOMMON]])
         elif choice_count <= 25:
-            # Late game: 40% chance, all MODERATE + WILD, RARE possible
-            base_chance = 0.40
+            # Late game: 70% chance (was 40%), all MODERATE + WILD, RARE possible
+            base_chance = 0.70
             pool = self.MODERATE_MUTATIONS.copy() + self.WILD_MUTATIONS.copy()
         else:
-            # End game: 50% chance, everything including ULTRA_RARE
-            base_chance = 0.50
+            # End game: 80% chance (was 50%), everything including ULTRA_RARE
+            base_chance = 0.80
             pool = self.MODERATE_MUTATIONS.copy() + self.WILD_MUTATIONS.copy()
+        
+        from engine.debug import debug_log
         
         # Adjust by instability
         final_chance = base_chance + (instability * 0.05)
         
-        if random.random() < final_chance:
+        debug_log(f"[DEBUG MUTATION] Base chance: {base_chance*100}%, Final chance: {final_chance*100}%, Pool size: {len(pool)}")
+        
+        roll = random.random()
+        debug_log(f"[DEBUG MUTATION] Rolled: {roll:.2f} vs {final_chance:.2f}")
+        
+        if roll < final_chance:
+            debug_log(f"[DEBUG MUTATION] Success! Selecting mutation from pool...")
             return self._select_mutation(pool, context)
         
+        debug_log(f"[DEBUG MUTATION] Failed roll")
         return None
     
     def _select_mutation(self, pool: List[Mutation], context: Dict) -> Mutation:
@@ -936,16 +980,30 @@ class MutationManager:
         
         return chosen
     
+    def _force_mutation(self, context: Dict) -> Mutation:
+        """Force a mutation to occur (for guaranteed turns)."""
+        choice_count = context.get('choice_count', 0)
+        
+        # Select appropriate pool based on progress
+        if choice_count <= 3:
+            pool = [m for m in self.MODERATE_MUTATIONS if m.rarity == MutationRarity.COMMON]
+        elif choice_count <= 8:
+            pool = self.MODERATE_MUTATIONS.copy()
+        else:
+            pool = self.MODERATE_MUTATIONS.copy() + self.WILD_MUTATIONS.copy()
+        
+        return self._select_mutation(pool, context)
+    
     def _activate_mutation(self, mutation: Mutation):
         """Activate a new mutation."""
         state = MutationState.ACTIVATING if mutation.duration > 0 else MutationState.ACTIVE
         self.active_mutations.append((mutation, mutation.duration, state))
         
-        # Set cooldown based on rarity
+        # MUCH shorter cooldowns
         if mutation.rarity in [MutationRarity.RARE, MutationRarity.ULTRA_RARE]:
-            self.cooldown = random.randint(4, 6)
+            self.cooldown = random.randint(1, 2)  # Was 4-6
         else:
-            self.cooldown = random.randint(2, 4)
+            self.cooldown = 0  # Was 2-4, now NO COOLDOWN for common!
     
     def _check_combos(self):
         """Check for mutation combos."""

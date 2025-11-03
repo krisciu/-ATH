@@ -243,6 +243,76 @@ EMPHASIZE: Tactile sensations, internal changes, bone movement, joint addition, 
             "You died in 1847. No wait, you're alive now. You remember burning at the stake. You remember the trenches. You remember being eaten by something that doesn't exist yet. These aren't dreams. They're memories. Every ancestor is inside you, screaming.",
             ["Genetic memory", "Historical trauma", "Inherited horror", "Past life bleeding"]
         ),
+        Scenario(
+            "ELEVATOR DESCENT",
+            "elevator_descent",
+            "Descending past floors that shouldn't exist",
+            "The elevator passes floor -47. You pressed 'Lobby'. The descent continues. -89. -134. The numbers accelerate. The elevator cable groans. You're going somewhere buildings don't reach. The doors will open eventually. You don't want to see what's there.",
+            ["Vertical horror", "Impossible depth", "Mechanical descent", "Underground revelation"]
+        ),
+        Scenario(
+            "UNDERWATER PRESSURE",
+            "underwater_pressure",
+            "Drowning in slow motion",
+            "Water fills the room. Ankle deep. Knee deep. Waist deep. The doors are sealed. The windows won't break. You have time to think about drowning. To calculate how many breaths remain. To understand exactly how you'll die. The water is patient.",
+            ["Slow drowning", "Rising water", "Calculated death", "Liquid pressure"]
+        ),
+        Scenario(
+            "RADIO STATIC",
+            "radio_static",
+            "Voices in white noise",
+            "The radio won't turn off. Static fills the room. But there are words in the noise. Your name. Instructions. Warnings. The static knows things about you. It's trying to tell you something. Or trying to become you. The volume increases.",
+            ["Audio horror", "Signal intrusion", "Voice manifestation", "Static communication"]
+        ),
+        Scenario(
+            "MANNEQUIN ROOM",
+            "mannequin_room",
+            "Surrounded by figures that move when unseen",
+            "The department store closed hours ago. You're locked in. The mannequins surround you. Plastic faces, frozen smiles. But they're closer than before. You didn't see them move. You never see them move. But they're always closer. One is wearing your jacket.",
+            ["Weeping angel horror", "Unseen movement", "Plastic people", "Retail nightmare"]
+        ),
+        Scenario(
+            "WRONG REFLECTION",
+            "wrong_reflection",
+            "Your reflection has different plans",
+            "The mirror shows you. But wrong. It moves a second late. Or a second early. It's making different choices. Reaching for different things. Its expression doesn't match yours. You realize: it's not your reflection. You're its reflection. It's been the real one all along.",
+            ["Mirror horror", "Reflection autonomy", "Identity theft", "Glass boundary"]
+        ),
+        Scenario(
+            "TEETH FALLING",
+            "teeth_falling",
+            "Your body is betraying you piece by piece",
+            "Your tooth comes loose. Then another. They fall like rain. Your fingers next—nails peeling, skin sloughing. You're coming apart. Not dying. Disassembling. The pieces are still alive, still you. You're becoming a pile of conscious fragments. Each piece still feels.",
+            ["Body horror", "Disassembly", "Piece-by-piece", "Conscious fragments"]
+        ),
+        Scenario(
+            "BACKWARDS SPEECH",
+            "backwards_speech",
+            "Everyone speaks in reverse and expects you to understand",
+            "They're all speaking backwards. Reversed syllables, inverted meaning. But they expect you to understand. They're getting frustrated with your confusion. You're the one speaking wrong. You've always been speaking wrong. The world has been patient with your defect. That patience is ending.",
+            ["Language horror", "Communication breakdown", "Reverse speech", "Linguistic isolation"]
+        ),
+        Scenario(
+            "MEAT LOCKER",
+            "meat_locker",
+            "Trapped in cold storage with hanging carcasses",
+            "The meat locker door closes. Locks. The temperature drops. Hanging carcasses surround you. Beef. Pork. Something else. Something that looks almost human. Almost. The cold seeps in. You have hours before hypothermia. The meat watches with absent eyes.",
+            ["Cold horror", "Meat storage", "Hypothermia", "Carcass company"]
+        ),
+        Scenario(
+            "INSECT COLONY",
+            "insect_colony",
+            "Discovering you're part of something larger",
+            "You feel them under your skin. Moving. Building. You're not infested. You're housing. A colony. They've been there for years. You're their world. They're expanding. Soon they'll need more space. They're considering your brain. The queen is already there.",
+            ["Parasitic horror", "Body colony", "Insect architecture", "Internal infestation"]
+        ),
+        Scenario(
+            "STATIC FIGURE",
+            "static_figure",
+            "Something stands perfectly still in every room",
+            "It's in the corner. Perfectly still. Human-shaped. Watching. You leave the room. It's in the next room. Same corner. Same position. Same watching. You run. Every room. Every corner. Always there first. Always watching. It's never moved. It's always been there. Waiting.",
+            ["Omnipresent entity", "Still watcher", "Corner horror", "Motionless pursuit"]
+        ),
     ]
     
     # 20 thematic seeds (conceptual constraints for AI creativity)
@@ -422,10 +492,10 @@ EMPHASIZE: Tactile sensations, internal changes, bone movement, joint addition, 
         Select a scenario and theme, avoiding recent repeats.
         Returns dict with all data needed for opening generation.
         """
-        # Exclude last 3 scenarios
+        # Exclude last 8 scenarios (was 3, now 8 for better variety)
         available_scenarios = [
             s for s in self.SCENARIOS 
-            if s.key not in self.recent_scenarios[-3:]
+            if s.key not in self.recent_scenarios[-8:]
         ]
         
         # If we've exhausted variety, allow repeats
@@ -662,6 +732,66 @@ PACING REQUIREMENTS:
     ╔═══════════════════════════════╗
     ║   ANCESTRAL MEMORY           ║
     ║   [past: bleeding through]   ║
+    ╚═══════════════════════════════╝
+            """,
+            "elevator_descent": """
+    ╔═══════════════════════════════╗
+    ║   ↓ ELEVATOR DESCENT ↓       ║
+    ║   [floor: -∞]                ║
+    ╚═══════════════════════════════╝
+            """,
+            "underwater_pressure": """
+    ╔═══════════════════════════════╗
+    ║   ≈≈ UNDERWATER ≈≈           ║
+    ║   [oxygen: depleting]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "radio_static": """
+    ╔═══════════════════════════════╗
+    ║   ▓▒░ RADIO STATIC ░▒▓       ║
+    ║   [signal: intrusive]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "mannequin_room": """
+    ╔═══════════════════════════════╗
+    ║   MANNEQUIN ROOM             ║
+    ║   [movement: unseen]         ║
+    ╚═══════════════════════════════╝
+            """,
+            "wrong_reflection": """
+    ╔═══════════════════════════════╗
+    ║   ⇄ WRONG REFLECTION ⇄       ║
+    ║   [identity: stolen]         ║
+    ╚═══════════════════════════════╝
+            """,
+            "teeth_falling": """
+    ╔═══════════════════════════════╗
+    ║   TEETH FALLING              ║
+    ║   [body: disassembling]      ║
+    ╚═══════════════════════════════╝
+            """,
+            "backwards_speech": """
+    ╔═══════════════════════════════╗
+    ║   BACKWARDS SPEECH           ║
+    ║   [language: reversed]       ║
+    ╚═══════════════════════════════╝
+            """,
+            "meat_locker": """
+    ╔═══════════════════════════════╗
+    ║   ❄ MEAT LOCKER ❄           ║
+    ║   [temperature: fatal]       ║
+    ╚═══════════════════════════════╝
+            """,
+            "insect_colony": """
+    ╔═══════════════════════════════╗
+    ║   INSECT COLONY              ║
+    ║   [host: you]                ║
+    ╚═══════════════════════════════╝
+            """,
+            "static_figure": """
+    ╔═══════════════════════════════╗
+    ║   STATIC FIGURE              ║
+    ║   [watching: always]         ║
     ╚═══════════════════════════════╝
             """,
         }

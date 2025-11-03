@@ -243,18 +243,27 @@ class EndingsManager:
         revelation_level = context.get('revelation_level', 0)
         session_count = context.get('session_count', 0)
         
-        # MINIMUM THRESHOLD: Don't end before choice 12 (give players time to experience content)
-        if choice_count < 12:
+        from engine.debug import debug_log
+        
+        # NO MINIMUM THRESHOLD - players can die any turn from bad choices
+        # With proper balance, most naturally reach 15-20 turns
+        # BUT: Prevent instant death on turn 0-1 (give player at least 2 choices)
+        if choice_count < 2:
             return None
+        
+        # DEBUG OUTPUT
+        debug_log(f"\n[DEBUG ENDING CHECK] Turn {choice_count}: Health={char_stats['health']}, Sanity={hidden_stats['sanity']}")
         
         # Priority 1: Instant death traps (handled separately in story_engine)
         
         # Priority 2: Health <= 0 (determine death type)
         if char_stats['health'] <= 0:
+            debug_log(f"[DEBUG] ENDING TRIGGERED: Health death (health={char_stats['health']})")
             return self._determine_death_ending(context)
         
         # Priority 3: Sanity <= 0 (determine sanity ending type)
         if hidden_stats['sanity'] <= 0:
+            debug_log(f"[DEBUG] ENDING TRIGGERED: Sanity death (sanity={hidden_stats['sanity']})")
             return self._determine_sanity_ending(context, revelation_level)
         
         # Priority 4: Special victory conditions
@@ -276,16 +285,16 @@ class EndingsManager:
             if transform_ending:
                 return transform_ending
         
-        # Priority 7: Story exhaustion (20+ choices) - LOWERED from 30 for faster games
-        if choice_count >= 20:
+        # Priority 7: Story exhaustion (25+ choices) - Natural ending point
+        if choice_count >= 25:
             return self._determine_exhaustion_ending(context, revelation_level)
         
-        # Priority 8: Cosmic/abstract endings (random chance at choice 15+) - LOWERED from 25
-        if choice_count >= 15 and random.random() < 0.20:  # 20% chance (was 15%)
+        # Priority 8: Cosmic/abstract endings (random chance at choice 18+)
+        if choice_count >= 18 and random.random() < 0.15:  # 15% chance
             return self._pick_cosmic_ending(context)
         
-        # Priority 9: Forced climax at 18+ choices (15% chance) - REDUCED from 30% for longer games
-        if choice_count >= 18 and random.random() < 0.15:
+        # Priority 9: Forced climax at 20+ choices (10% chance) - Rare forced ending
+        if choice_count >= 20 and random.random() < 0.10:
             return self._pick_climax_ending(context)
         
         return None
@@ -327,13 +336,14 @@ class EndingsManager:
         hidden_stats = context['hidden_stats']
         choice_count = context['choice_count']
         
-        # Transcendence: All stats 8+ (nearly impossible)
-        if (char_stats['health'] > 80 and
-            all(stat >= 8 for stat in hidden_stats.values())):
+        # Transcendence: All stats 9+ AND survived 18+ choices (very rare)
+        if (choice_count >= 18 and
+            char_stats['health'] > 100 and
+            all(stat >= 9 for stat in hidden_stats.values())):
             return self.ENDINGS['transcendence']
         
-        # Survivor: 50 choices with health > 50
-        if choice_count >= 50 and char_stats['health'] > 50:
+        # Survivor: 25+ choices with health > 60 (challenging but achievable)
+        if choice_count >= 25 and char_stats['health'] > 60:
             return self.ENDINGS['survivor']
         
         return None
@@ -349,15 +359,15 @@ class EndingsManager:
         if session_count >= 109 and revelation_level >= 5 and choice_count >= 30:
             return self.ENDINGS['loop_eternal']
         
-        # Truth Revealed: Revelation 5 reached
-        if revelation_level >= 5 and choice_count >= 20:
+        # Truth Revealed: Revelation 5 reached (very rare, hard to achieve)
+        if revelation_level >= 5 and choice_count >= 25:
             return self.ENDINGS['truth_revealed']
         
-        # Acceptance: High trust, low curiosity, some playtime
-        if (hidden_stats['trust'] >= 8 and 
-            hidden_stats['curiosity'] <= 3 and 
+        # Acceptance: High trust, low curiosity, long playtime (must be earned)
+        if (hidden_stats['trust'] >= 9 and  # Raised from 8 (need to GAIN trust)
+            hidden_stats['curiosity'] <= 2 and  # Lowered from 3 (must actively avoid curiosity)
             revelation_level == 0 and
-            choice_count >= 25):
+            choice_count >= 20):  # Lowered from 25 for balance
             return self.ENDINGS['acceptance']
         
         return None
@@ -408,8 +418,8 @@ class EndingsManager:
         self.death_cause = 'sacrifice'
     
     def should_warn_low_health(self, health: int) -> bool:
-        """Check if we should warn about low health."""
-        if health <= 20 and not self.warned_about_health:
+        """Check if we should warn about low health (scaled for 180 max health)."""
+        if health <= 40 and not self.warned_about_health:  # ~22% of max health
             self.warned_about_health = True
             return True
         return False

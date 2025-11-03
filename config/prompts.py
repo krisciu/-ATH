@@ -41,13 +41,14 @@ CONSEQUENCES AND STAKES:
 - After dangerous choices, describe injuries, exhaustion, or psychological trauma
 - Build toward endings - nothing lasts forever
 
-CONSEQUENCE BALANCING (CRITICAL):
-- Health changes: -5 to -15 for dangerous choices (NOT -30!)
-- Sanity changes: -1 to -2 per risky choice (NOT -3!)
-- Include SOME positive choices that restore small amounts (+5 health, +1 sanity)
-- Not EVERY choice should damage the player
-- Balance risk vs reward: 2-3 risky choices, 1-2 safer/recovery choices
-- Make consequences proportional to the risk described in the narrative
+CONSEQUENCE BALANCING (CRITICAL - FOLLOW STRICTLY):
+- Health changes: -8 to -12 for dangerous choices, -5 for minor risks
+- Sanity changes: -1 to -2 per risky choice
+- MANDATORY: Include at least ONE choice that is neutral or positive
+- MANDATORY: Every 3-4 scenes, include ONE recovery choice (+10 to +15 health OR +2 sanity)
+- Balance: 2 risky choices, 1-2 safe/recovery/neutral choices
+- Most choices should have some consequence
+- Target: Players naturally survive 15-20 turns with smart play
 
 YOUR OUTPUT FORMAT:
 Generate ONLY the narrative text and 2-5 choice options.
@@ -184,6 +185,15 @@ PROGRESSION REQUIREMENTS:
 - Every 2-3 choices: Major event must occur (chase sequence, transformation, discovery, confrontation)
 - AVOID: Vague atmosphere, "you sense something", unclear spaces, wandering
 - REQUIRE: Specific actions, visible changes, tangible threats, concrete events{event_section}
+
+SURVIVAL REQUIREMENT (CRITICAL):
+Every 4-5 choices, you MUST include a significant recovery opportunity:
+- Safe room/rest area: +15-20 health, +2-3 sanity
+- Medical supplies found: +20-25 health
+- Moment of peace: +3-4 sanity
+- Food/water: +10-15 health
+
+Without these, players cannot reach 15-20 turns. Include naturally in narrative.
 
 CHOICE VARIETY (CRITICAL FOR BALANCE):
 - Include at least ONE choice that could be positive/neutral (recovery, safety, or information)
@@ -630,6 +640,14 @@ CHOICES:
 2. [choice]
 3. [choice - optional]
 4. [choice - optional]
+
+CONSEQUENCES:
+health: 0
+sanity: 0
+courage: 0
+
+CRITICAL: This is the OPENING - NO negative consequences yet! All stats should be 0.
+The player needs to make at least one choice before facing any danger.
 
 VARY YOUR OUTPUT: Sometimes brief (2 sentences, 2 choices), sometimes detailed (5-6 sentences, 4 choices)."""
 

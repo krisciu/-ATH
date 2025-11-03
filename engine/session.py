@@ -75,10 +75,10 @@ class SessionManager:
         elif new_session_count > 109:
             fragments.append(f"iteration: {new_session_count}. persistence noted.")
         
-        # Track scenarios (last 3)
+        # Track scenarios (last 8 for better variety)
         scenarios = self.ghost_memory.get('scenarios', [])
         if scenario_used:
-            scenarios = (scenarios + [scenario_used])[-3:]  # Keep only last 3
+            scenarios = (scenarios + [scenario_used])[-8:]  # Keep last 8 (was 3)
         
         # Track mutations seen
         mutations = self.ghost_memory.get('mutations_seen', [])

@@ -2,8 +2,8 @@
 
 # Character Stats (visible CYOA stats)
 DEFAULT_CHARACTER_STATS = {
-    "health": 150,  # Increased from 100 to allow longer gameplay
-    "max_health": 150,
+    "health": 180,  # Reduced from 250 - sweet spot for 15-20 turns
+    "max_health": 180,
     "strength": 5,
     "speed": 5,
     "intelligence": 5,
@@ -11,10 +11,10 @@ DEFAULT_CHARACTER_STATS = {
 
 # Hidden Stats (invisible narrative modifiers)
 DEFAULT_HIDDEN_STATS = {
-    "courage": 6,  # Slightly higher starting values
-    "sanity": 10,  # Increased from 8 to prevent early endings
-    "curiosity": 6,
-    "trust": 6,
+    "courage": 7,  # Reduced from 8
+    "sanity": 12,  # Reduced from 15 to 12 for better balance
+    "curiosity": 7,
+    "trust": 7,
 }
 
 # Progression thresholds
@@ -68,7 +68,7 @@ DISCOVERY_RATE = 3  # Major revelation every N choices
 
 # Mutation System (rule-breaking)
 MUTATION_BASE_CHANCE = 0.05  # 5% base per turn
-MUTATION_COOLDOWN = (1, 3)  # Choices between mutations (reduced for more frequency)
-MUTATION_GUARANTEED_AT = [2, 6, 10, 15, 20]  # Specific choice numbers (first mutation at turn 2!)
+MUTATION_COOLDOWN = (0, 1)  # Choices between mutations (almost no cooldown!)
+MUTATION_GUARANTEED_AT = [2, 4, 7, 10, 13, 16, 19]  # More frequent guaranteed mutations!
 WILD_MUTATIONS_AT_REVELATION = 3  # Unlock wild mutations at this revelation level
 

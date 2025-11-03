@@ -108,9 +108,6 @@ class Game:
                 # Check for endings (AI-GENERATED SYSTEM)
                 ending = self.endings.check_for_ending(context)
                 if ending:
-                    # Generate AI-driven ending narrative
-                    self.renderer.console.print("\n[dim cyan]The story concludes...[/]\n")
-                    time.sleep(1.0)
                     
                     ending_result = self.ai.generate_ending_narrative(ending, context)
                     

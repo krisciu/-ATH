@@ -188,6 +188,12 @@ class Renderer:
             try:
                 choice = self.console.input("[bold green]>[/] ")
                 
+                # Check for debug toggle command
+                if choice.lower().strip() == 'debug':
+                    from engine.debug import DebugManager
+                    DebugManager.toggle()
+                    continue  # Ask for input again
+                
                 # Check for secret words if callback provided
                 if secret_check_callback:
                     secret_response = secret_check_callback(choice)
