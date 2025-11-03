@@ -101,17 +101,41 @@ class Game:
                 context = self.story.get_context()
                 context['session_count'] = session_count  # Add for ending checks
                 
-                # Check for endings (NEW SYSTEM)
+                # Check for endings (AI-GENERATED SYSTEM)
                 ending = self.endings.check_for_ending(context)
                 if ending:
-                    # Show ending art
-                    ending_art = self.endings.get_ending_art(ending.type)
-                    self.renderer.console.print(ending_art, style="bold yellow", justify="center")
+                    # Generate AI-driven ending narrative
+                    self.renderer.console.print("\n[dim cyan]The story concludes...[/]\n")
                     time.sleep(1.0)
                     
-                    # Show ending text
-                    ending_text = self.endings.get_ending_text(ending, context)
-                    self.renderer.console.print(ending_text, style="bold cyan")
+                    ending_result = self.ai.generate_ending_narrative(ending, context)
+                    
+                    # Show title
+                    self.renderer.console.print(f"\n{'='*60}")
+                    style = "bold green" if (hasattr(ending, 'is_good') and ending.is_good) else "bold red"
+                    self.renderer.console.print(f"  {ending.name}", style=style)
+                    self.renderer.console.print(f"{'='*60}\n")
+                    
+                    # Show final ASCII art
+                    if ending_result['ascii_art']:
+                        self.renderer.console.print(ending_result['ascii_art'], style="bold yellow", justify="center")
+                        self.renderer.console.print()
+                    
+                    # Show AI-generated ending narrative (escape any brackets)
+                    safe_narrative = ending_result['narrative'].replace('[', '\\[').replace(']', '\\]')
+                    self.renderer.console.print(safe_narrative, style="italic")
+                    self.renderer.console.print()
+                    
+                    # Show stats
+                    self.renderer.console.print(f"\nChoices made: {context['choice_count']}")
+                    self.renderer.console.print(f"Revelation level: {self.truth.revelation_level}/5")
+                    
+                    # Narrator's final comment
+                    final_comment = self.narrator.get_ending_comment(ending.type, context)
+                    if final_comment:
+                        self.renderer.console.print(f"\nThe narrator: '{final_comment}'")
+                    
+                    self.renderer.console.print(f"\n{'='*60}\n")
                     time.sleep(2.0)
                     break
                 
@@ -154,7 +178,9 @@ class Game:
                 if mutation:
                     special_msg = handle_special_mutations(mutation, context, self.renderer, self.story)
                     if special_msg:
-                        self.renderer.console.print(special_msg, style="yellow")
+                        # Escape any brackets in mutation messages
+                        safe_msg = special_msg.replace('[', '\\[').replace(']', '\\]')
+                        self.renderer.console.print(safe_msg, style="yellow")
                         time.sleep(1.0)
                 
                 # Update systems
@@ -180,6 +206,9 @@ class Game:
                 narrative = opening.get('narrative', '')
                 if not narrative:
                     narrative = "The space around you shifts. Reality feels negotiable."
+                
+                # Track horror concepts used for variety
+                self.story.detect_horror_concepts(narrative)
                 
                 # Apply mutation to narrative
                 if mutation:
@@ -217,6 +246,12 @@ class Game:
                     pass  # Skip narrative display
                 else:
                     self.renderer.show_narrative(narrative, interjection, intensity)
+                    
+                    # NOW show consequence feedback AFTER narrative (so damage makes narrative sense)
+                    consequence_feedback = self.story.get_consequence_feedback(self.story.last_danger_level)
+                    if consequence_feedback:
+                        self.renderer.console.print(f"\n[dim red]{consequence_feedback}[/]")
+                        time.sleep(0.8)
                 
                 # Occasional status comment from narrator
                 status_comment = self.narrator.get_status_comment(
@@ -285,14 +320,15 @@ class Game:
                     self.renderer.console.print("[dim italic]No, no, you're right. Option {choice_idx + 1}. Definitely.[/]\n")
                     time.sleep(0.8)
                 
-                # Process choice
+                # Process choice (stores danger level for later display)
                 self.story.process_choice(chosen_text, choice_idx)
                 
-                # Show consequence feedback if choice was dangerous
-                consequence_feedback = self.story.get_consequence_feedback(self.story.last_danger_level)
-                if consequence_feedback:
-                    self.renderer.console.print(f"\n[dim red]{consequence_feedback}[/]")
-                    time.sleep(1.0)
+                # Check if player chose obvious trap (classic CYOA punishment)
+                if self.story.detect_trap_choice(chosen_text):
+                    self.story.apply_trap_consequences()
+                    # Show immediate feedback
+                    self.renderer.console.print(f"\n[bold red]That was... unwise.[/]")
+                    time.sleep(1.2)
                 
                 # Generate next scene with revelation context
                 # Use thematic loader instead of simple loading
@@ -351,8 +387,15 @@ class Game:
             sys.exit(0)
         
         except Exception as e:
-            self.renderer.console.print(f"\n\n[bold red]CRITICAL ERROR:[/] {str(e)}")
+            # Escape the error message to prevent Rich markup conflicts
+            error_msg = str(e).replace('[', '\\[').replace(']', '\\]')
+            self.renderer.console.print(f"\n\n[bold red]CRITICAL ERROR:[/] {error_msg}")
             self.renderer.console.print("[dim]The narrator has stopped responding.[/]")
+            
+            # Print traceback without Rich markup (use plain print)
+            import traceback
+            print("\nFull traceback:")
+            print(traceback.format_exc())
             sys.exit(1)
     
     def _trigger_special_moment(self, context: Dict):

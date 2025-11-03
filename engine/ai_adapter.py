@@ -259,42 +259,147 @@ class AIAdapter:
     def get_art_subject(self, context: Dict) -> tuple[str, str]:
         """
         Get subject and mood for art generation based on context.
-        Returns (subject, mood) tuple.
+        Returns (subject, mood) tuple - now more specific and contextual.
         """
         char_stats = context['character_stats']
         hidden_stats = context['hidden_stats']
         revelation_level = context.get('revelation_level', 0)
         choice_count = context['choice_count']
+        recent_narrative = context.get('recent_narrative', '')
+        
+        # Extract concrete nouns from recent narrative for context
+        narrative_lower = recent_narrative.lower()
+        
+        # Context-specific art from narrative keywords
+        if 'hand' in narrative_lower or 'fingers' in narrative_lower:
+            if 'too many' in narrative_lower or 'extra' in narrative_lower:
+                return ("hand with seven fingers reaching toward viewer, extra joints visible", "body horror")
+            return ("reaching hand with five distinct fingers, palm forward", "unsettling")
+        
+        if 'eye' in narrative_lower or 'staring' in narrative_lower or 'watching' in narrative_lower:
+            if 'multiple' in narrative_lower or 'many' in narrative_lower:
+                return ("seven eyes arranged in circular pattern, all pupils following viewer", "watching")
+            return ("two eyes with dilated pupils, bloodshot, unblinking", "paranoia")
+        
+        if 'mirror' in narrative_lower or 'reflection' in narrative_lower:
+            return ("cracked mirror with distorted face reflection, wrong number of eyes", "uncanny")
+        
+        if 'door' in narrative_lower or 'doorway' in narrative_lower or 'threshold' in narrative_lower:
+            return ("doorway with impossible perspective, shadow figure standing in frame", "liminal")
+        
+        if 'mouth' in narrative_lower or 'teeth' in narrative_lower:
+            return ("mouth with too many teeth, rows of sharp incisors visible", "devouring")
+        
+        if 'flesh' in narrative_lower or 'skin' in narrative_lower:
+            return ("pulsing organic mass, veins visible through translucent skin", "visceral")
         
         # Critical health - death approaching
         if char_stats['health'] < 20:
-            return ("death, darkness, decay, skeletal figure", "dread")
+            return ("skeletal figure draped in torn cloth, hollow eye sockets, bony hands reaching", "death")
         
         # Critical health but not dying yet
         if char_stats['health'] < 30:
-            return ("wounded, bleeding, deterioration", "pain")
+            return ("wounded figure with visible injuries, blood dripping, bandaged limbs", "pain")
         
         # Critical sanity - breakdown
         if hidden_stats['sanity'] < 2:
-            return ("fractured mind, chaos, static, dissolution", "insanity")
+            return ("face split vertically down middle, each half showing different expression", "fractured")
         
         # Low sanity
         if hidden_stats['sanity'] < 3:
-            return ("distorted reality, warped perception", "unsettling")
+            return ("figure melting like wax, features sliding down face", "dissolution")
         
         # High revelation - IHNMAIMS truth
         if revelation_level >= 4:
-            return ("computational horror, transformation, soft blob, eternal machine", "hate")
+            return ("human figure transformed into soft shapeless mass, machine tendrils embedded", "hate")
         
         if revelation_level >= 3:
-            return ("cycles, loops, iteration, trapped", "recursive")
+            return ("same doorway repeated infinitely in recursive loop, figure trapped inside", "eternal")
         
-        # Milestones - atmospheric
+        # Milestones - but still specific
         if choice_count % 5 == 0:
-            return ("current atmosphere, mysterious space, shadows", "mysterious")
+            milestone_subjects = [
+                ("twisted staircase spiraling into darkness, no visible end", "descent"),
+                ("window showing impossible geometry outside, angles that shouldn't exist", "wrongness"),
+                ("figure made entirely of writhing tendrils, vaguely humanoid shape", "alien"),
+                ("mechanical skull with exposed gears and wires, one eye glowing", "machine"),
+            ]
+            return random.choice(milestone_subjects)
         
-        # Default
-        return ("abstract horror, undefined space", "eerie")
+        # Default - specific, not abstract
+        default_subjects = [
+            ("doorway with shadow figure in threshold, impossible to see face clearly", "eerie"),
+            ("pair of hands emerging from darkness, too-long fingers spread wide", "reaching"),
+            ("geometric shape that hurts to look at, angles wrong", "incomprehensible"),
+            ("face with features in wrong positions, mouth where eyes should be", "wrongness"),
+        ]
+        return random.choice(default_subjects)
+    
+    def generate_ending_narrative(self, ending, context: Dict) -> Dict[str, str]:
+        """
+        Generate AI-driven ending narrative with final ASCII art.
+        Returns: {'narrative': str, 'ascii_art': str}
+        """
+        from config.prompts import get_ending_generation_prompt
+        
+        prompt = get_ending_generation_prompt(ending, context)
+        
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=800,  # Longer for endings
+                temperature=0.8,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            content = response.content[0].text.strip()
+            narrative = content
+            
+            # Generate final ASCII art
+            art_subject = self._get_ending_art_subject(ending, context)
+            ascii_art = self.generate_ascii_art(art_subject[0], art_subject[1], 
+                                                context['hidden_stats']['sanity'])
+            
+            return {
+                'narrative': narrative,
+                'ascii_art': ascii_art
+            }
+            
+        except Exception as e:
+            # Fallback to basic ending
+            return {
+                'narrative': ending.ai_seed if hasattr(ending, 'ai_seed') else "The story ends here.",
+                'ascii_art': self._get_fallback_ending_art(ending.ending_category if hasattr(ending, 'ending_category') else 'death')
+            }
+    
+    def _get_ending_art_subject(self, ending, context: Dict) -> tuple[str, str]:
+        """Get appropriate ASCII art subject for ending type."""
+        category = ending.ending_category if hasattr(ending, 'ending_category') else 'death'
+        
+        art_map = {
+            'death': ("skeletal figure reaching toward viewer, death personified", "finality"),
+            'sanity_loss': ("face fragmenting into pieces, mind shattering visually", "dissolution"),
+            'victory': ("figure ascending or transcending, triumphant pose", "triumph"),
+            'transformation': ("human form becoming something else, mid-change", "metamorphosis"),
+            'loop': ("infinite spiral or recursive pattern, no escape", "eternal"),
+        }
+        return art_map.get(category, ("abstract void, ending", "conclusion"))
+    
+    def _get_fallback_ending_art(self, category: str) -> str:
+        """Get fallback ASCII art for endings."""
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        
+        art_types = {
+            'death': 'skull',
+            'sanity_loss': 'split_face',
+            'victory': 'spiral',
+            'transformation': 'melting',
+            'loop': 'void',
+        }
+        
+        art_type = art_types.get(category, 'void')
+        return typo.get_creepy_ascii_art(art_type)
     
     def generate_art_for_context(self, context: Dict) -> Optional[str]:
         """

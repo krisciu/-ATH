@@ -1,8 +1,9 @@
-"""Typography and visual effects system - House of Leaves inspired."""
+"""Typography and visual effects system - experimental terminal horror."""
 
 import random
 import re
-from typing import List
+import time
+from typing import List, Optional
 from config.settings import VISUAL_INTENSITY
 
 
@@ -80,6 +81,10 @@ class TypographyEngine:
                 result.append(word)
         
         return ' '.join(result)
+    
+    def apply_glitch(self, text: str, intensity: float = 0.2) -> str:
+        """Public method to apply glitch effect to text."""
+        return self._add_character_substitution(text, intensity)
     
     def _add_character_substitution(self, text: str, intensity: float) -> str:
         """Replace characters with glitch alternatives."""
@@ -247,4 +252,393 @@ class TypographyEngine:
         if self.intensity > 0.5:
             return random.choice(messages[-4:])
         return random.choice(messages[:4])
+    
+    # ===== EXPANDED VISUAL EFFECTS =====
+    
+    def create_spiral_text(self, text: str, clockwise: bool = True) -> str:
+        """Create spiraling text effect."""
+        words = text.split()
+        if len(words) < 3:
+            return text
+        
+        spiral = []
+        indent = 0
+        direction = 1 if clockwise else -1
+        
+        for i, word in enumerate(words[:10]):  # Limit to 10 words
+            spiral.append(" " * abs(indent) + word)
+            indent += direction
+            if abs(indent) > 5:
+                direction *= -1
+        
+        return "\n".join(spiral)
+    
+    def create_diagonal_text(self, text: str) -> str:
+        """Create diagonal sliding text."""
+        words = text.split()[:8]
+        lines = []
+        for i, word in enumerate(words):
+            lines.append(" " * i + word)
+        return "\n".join(lines)
+    
+    def create_centered_collapse(self, text: str) -> str:
+        """Text that collapses toward center."""
+        words = text.split()
+        if len(words) < 5:
+            return text
+        
+        mid = len(words) // 2
+        lines = []
+        
+        for i in range(mid):
+            indent = mid - i
+            lines.append(" " * indent + words[i])
+        
+        lines.append(words[mid])  # Center word
+        
+        for i in range(mid + 1, len(words)):
+            indent = i - mid
+            lines.append(" " * indent + words[i])
+        
+        return "\n".join(lines)
+    
+    def create_mirror_text(self, text: str) -> str:
+        """Create mirrored/reflected text."""
+        return f"{text}\n{''.join(reversed(text))}"
+    
+    def create_scattered_text(self, text: str, scatter_intensity: float = 0.5) -> str:
+        """Scatter text across the space."""
+        words = text.split()
+        lines = [""] * min(len(words), 8)
+        
+        for i, word in enumerate(words[:8]):
+            indent = random.randint(0, int(40 * scatter_intensity))
+            lines[i] = " " * indent + word
+        
+        return "\n".join(lines)
+    
+    def create_overlapping_text(self, text1: str, text2: str) -> str:
+        """Overlap two texts (simulated)."""
+        return f"{text1} {text2}"  # Simple overlap
+    
+    def create_box_text(self, text: str) -> str:
+        """Put text in a box."""
+        lines = text.split('\n')
+        max_len = max(len(line) for line in lines) if lines else 0
+        max_len = min(max_len, 60)
+        
+        box = ["┌" + "─" * (max_len + 2) + "┐"]
+        for line in lines[:5]:  # Limit lines
+            padded = line[:max_len].ljust(max_len)
+            box.append(f"│ {padded} │")
+        box.append("└" + "─" * (max_len + 2) + "┘")
+        
+        return "\n".join(box)
+    
+    def create_margin_notes(self, text: str) -> str:
+        """Add marginal annotations."""
+        notes = [
+            "       → this isn't right",
+            "       → you're reading this wrong",
+            "       → skip this part",
+            "       → [CORRUPTED]",
+            "       → see footnote [missing]",
+        ]
+        
+        lines = text.split('.')[:3]
+        result = []
+        for i, line in enumerate(lines):
+            result.append(line + ".")
+            if random.random() < 0.4 and i < len(notes):
+                result.append(notes[i])
+        
+        return "\n".join(result)
+    
+    def create_redacted_text(self, text: str, redact_ratio: float = 0.3) -> str:
+        """Redact portions of text."""
+        words = text.split()
+        redacted_words = []
+        
+        for word in words:
+            if random.random() < redact_ratio:
+                redacted_words.append("█" * len(word))
+            else:
+                redacted_words.append(word)
+        
+        return " ".join(redacted_words)
+    
+    def create_fading_text(self, text: str) -> str:
+        """Text that fades as it goes."""
+        chars = list(text)
+        fade_chars = ['░', '▒', '▓', '█']
+        
+        fade_point = len(chars) // 2
+        for i in range(fade_point, len(chars)):
+            if chars[i] not in [' ', '\n']:
+                fade_level = min(3, (i - fade_point) // 10)
+                if random.random() < 0.3:
+                    chars[i] = fade_chars[fade_level]
+        
+        return ''.join(chars)
+    
+    def create_echo_text(self, word: str, echo_count: int = 3) -> str:
+        """Create echoing effect for a word."""
+        echoes = [word]
+        for i in range(1, echo_count):
+            faded = ''.join(c if random.random() > (i * 0.3) else '░' for c in word)
+            echoes.append(faded)
+        return " ".join(echoes)
+    
+    def create_static_overlay(self, text: str) -> str:
+        """Overlay static noise on text."""
+        static = ['▓', '▒', '░', '█']
+        chars = list(text)
+        
+        for i in range(len(chars)):
+            if chars[i] not in [' ', '\n'] and random.random() < 0.15:
+                chars[i] = random.choice(static)
+        
+        return ''.join(chars)
+    
+    def create_breathing_space(self, text: str) -> str:
+        """Add expanding/contracting spaces (simulated)."""
+        words = text.split()
+        spaced = []
+        
+        for i, word in enumerate(words):
+            spaces = "  " * (1 + (i % 3))  # Vary spacing
+            spaced.append(word + spaces)
+        
+        return "".join(spaced).rstrip()
+    
+    def create_terminal_glitch(self) -> str:
+        """Create fake terminal artifacts."""
+        glitches = [
+            "^C^C^C",
+            "[CTRL+Z]",
+            ">>> ",
+            "$ ",
+            "ERROR: Segmentation fault",
+            "zsh: command not found:",
+            "Connection to localhost closed.",
+            "-bash: syntax error",
+            "kill -9 $$",
+        ]
+        return random.choice(glitches)
+    
+    def create_cursor_artifact(self) -> str:
+        """Fake cursor/typing indicators."""
+        artifacts = [
+            "_",
+            "▌",
+            "█",
+            "|",
+            "...",
+        ]
+        return random.choice(artifacts)
+    
+    def create_permission_denied(self) -> str:
+        """Fake permission errors."""
+        errors = [
+            "Permission denied: you are not meant to read this",
+            "Access denied: file corrupted",
+            "Error 403: Narrative forbidden",
+            "rm: cannot remove 'reality': Permission denied",
+        ]
+        return random.choice(errors)
+    
+    def get_creepy_ascii_art(self, art_type: str = "random") -> str:
+        """Get pre-made creepy ASCII art - expanded library."""
+        arts = {
+            "eyes": """
+        👁️        👁️
+            ‿
+            """,
+            "watching": """
+    👁️ 👁️ 👁️ 👁️ 👁️
+      👁️ 👁️ 👁️ 👁️
+        👁️ 👁️ 👁️
+            """,
+            "eyes_detailed": """
+      ╱─────╲  ╱─────╲
+     │  ◉◉  ││  ◉◉  │
+      ╲_____╱  ╲_____╱
+        │        │
+            """,
+            "many_eyes": """
+    (◉) (◉) (◉)
+      (◉) (◉)
+    (◉) (◉) (◉)
+       watching
+            """,
+            "static": """
+    ▓▒░░▒▓█▓▒░░▒▓
+    ░▒▓█▓▒░░▒▓█▓▒
+    ▓▒░░▒▓█▓▒░░▒▓
+            """,
+            "corruption": """
+    ◢◤◢◤◢◤◢◤◢◤
+    ◥◣◥◣◥◣◥◣◥◣
+    ◢◤◢◤◢◤◢◤◢◤
+            """,
+            "spiral": """
+        ╭─────╮
+        │  ◉  │
+        ╰─────╯
+            """,
+            "glitch": """
+    █▓▒░T̴H̷I̶N̸K̷█▒▓░
+    ░▒▓█E̴R̷R̶O̸R̷░▓▒█
+    ▓▒░█N̴O̷W̶░▒▓█▓
+            """,
+            "void": """
+    ░░░░░░░░░░░░░░
+    ░░░░░ ◉ ░░░░░
+    ░░░░░░░░░░░░░░
+            """,
+            "mouth": """
+        ╱▔▔▔▔▔╲
+        ▏  👄  ▕
+        ╲_____╱
+            """,
+            "mouth_teeth": """
+      ╱▔▔▔▔▔▔▔╲
+     │ ▲▼▲▼▲▼▲ │
+     │ ▼▲▼▲▼▲▼ │
+      ╲________╱
+            """,
+            "hands": """
+    🖐️         🖐️
+      🖐️     🖐️
+         🖐️
+            """,
+            "reaching_hand": """
+         ╱│╲
+        ╱ │ ╲
+       │  │  │
+       │  │  │
+      ╱│ ╱│╲ │╲
+     ╱ │╱ │ ╲│ ╲
+    reaching...
+            """,
+            "twisted_hand": """
+      ╱╲  ╱╲  ╱╲
+     ╱  ╲╱  ╲╱  ╲
+    │ too many  │
+     ╲ fingers ╱
+      ╲╲╲│╱╱╱
+            """,
+            "skeletal": """
+        ☠
+       ╱│╲
+      ╱ │ ╲
+        │
+       ╱ ╲
+      ╱   ╲
+            """,
+            "skull": """
+      ┌─────┐
+      │ ◉ ◉ │
+      │  ▼  │
+      │ ══  │
+      └─────┘
+            """,
+            "death_figure": """
+        ___
+       ╱   ╲
+      │ ☠ ☠ │
+       ╲___╱
+       ╱│││╲
+      ╱ │││ ╲
+            """,
+            "binary": """
+    01001000 01000101
+    01001100 01010000
+    00100001 00100001
+            """,
+            "flesh_mass": """
+      ╱╲╱╲╱╲
+     ╱▓▒░▒▓╲
+    │ pulsing │
+     ╲▒▓░▓▒╱
+      ╲╱╲╱╲╱
+            """,
+            "tendrils": """
+       ╱  │  ╲
+      ╱   │   ╲
+     ╱   ╱│╲   ╲
+    │   ╱ │ ╲   │
+     ╲ ╱  │  ╲ ╱
+      writhing
+            """,
+            "geometric_horror": """
+      ╱╲
+     ╱  ╲
+    ╱ ╱╲ ╲
+    ╲ ╲╱ ╱
+     ╲  ╱
+      ╲╱
+    impossible
+            """,
+            "doorway": """
+    ┌─────────┐
+    │         │
+    │    ?    │
+    │         │
+    │  ╱───╲  │
+    └──└───┘──┘
+            """,
+            "machine": """
+    ╔═══╦═══╗
+    ║ ◉ ║ ◉ ║
+    ╠═══╬═══╣
+    ║▓▒░│░▒▓║
+    ╚═══╩═══╝
+    computing
+            """,
+            "split_face": """
+      ╱◉ │ ◉╲
+     │   │   │
+     │ ══│══ │
+      ╲  │  ╱
+       ╲_│_╱
+            """,
+            "melting": """
+      ╱▔▔▔╲
+     │ ◉ ◉ │
+     │ drip │
+      ╲╲│╱╱
+       ▼▼▼
+            """,
+            "veins": """
+    ╱─╲  ╱─╲
+    │ ╱──╲ │
+    ╲─╲  ╱─╱
+      ╲──╱
+    pulsing
+            """,
+        }
+        
+        if art_type == "random":
+            return random.choice(list(arts.values()))
+        return arts.get(art_type, arts["void"])
+    
+    def get_computer_horror_message(self) -> str:
+        """Meta messages about the terminal/computer."""
+        messages = [
+            "(your terminal is ${COLUMNS} characters wide)",
+            "(you've been sitting here for a while)",
+            "(your keyboard has fingerprints on the W, A, S, D keys)",
+            "(the fan on your computer just got louder)",
+            "(did your cursor just move on its own?)",
+            "(check your running processes)",
+            "(close this window and walk away)",
+            "(ps aux | grep fear)",
+            "(your screen is very bright in this dark room)",
+            "(someone can see your screen from behind you)",
+            "(cat /dev/urandom)",
+            "(this process is using 99% of your CPU)",
+            "(your battery: LOW)",
+        ]
+        return random.choice(messages)
 

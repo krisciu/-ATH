@@ -21,6 +21,11 @@ class Renderer:
         self.console = Console()
         self.typing_speed = 0.02  # Base typing speed
     
+    @staticmethod
+    def escape_markup(text: str) -> str:
+        """Escape Rich markup characters to prevent parsing errors."""
+        return text.replace('[', '\\[').replace(']', '\\]')
+    
     def clear(self):
         """Clear the screen."""
         self.console.clear()
@@ -65,15 +70,30 @@ class Renderer:
         time.sleep(0.3)
     
     def type_text(self, text: str, speed: Optional[float] = None, style: str = ""):
-        """Type out text character by character."""
+        """Type out text character by character with proper animation."""
+        from rich.live import Live
+        from rich.text import Text
+        
         speed = speed or self.typing_speed
         
-        for char in text:
-            self.console.print(char, end="", style=style)
-            if char not in [' ', '\n']:
-                time.sleep(speed * random.uniform(0.5, 1.5))
+        # Escape any Rich markup in the text for safety
+        safe_text = text.replace('[', '\\[').replace(']', '\\]')
         
-        self.console.print()  # Newline at end
+        # Build text progressively with Live display
+        displayed_text = Text()
+        
+        with Live(displayed_text, console=self.console, refresh_per_second=30) as live:
+            for char in safe_text:
+                displayed_text.append(char, style=style)
+                live.update(displayed_text)
+                
+                # Add delay for non-whitespace characters
+                if char not in [' ', '\n', '\t']:
+                    time.sleep(speed * random.uniform(0.5, 1.5))
+                elif char == ' ':
+                    time.sleep(speed * 0.3)
+        
+        self.console.print()  # Newline after animation completes
     
     def show_narrative(self, narrative: str, interjection: Optional[str] = None, intensity: float = 0.0):
         """Display narrative text with optional narrator interjection."""

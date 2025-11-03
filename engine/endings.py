@@ -1,4 +1,4 @@
-"""Endings system with 14 different conclusion types."""
+"""Endings system with 25+ different conclusion seeds for AI story wrapping."""
 
 import random
 from typing import Optional, Dict, Tuple
@@ -7,12 +7,13 @@ from dataclasses import dataclass
 
 @dataclass
 class Ending:
-    """Represents a game ending."""
+    """Represents a game ending with AI generation seed."""
     type: str
     name: str
-    description: str
-    is_victory: bool = False
+    ending_category: str  # 'death', 'sanity_loss', 'victory', 'transformation', 'loop', etc.
+    ai_seed: str  # Prompt seed for AI to generate ending narrative
     revelation_aware: bool = False
+    is_good: bool = False  # True for victory endings
 
 
 class EndingsManager:
@@ -24,25 +25,34 @@ class EndingsManager:
         'violent_death': Ending(
             'violent_death',
             'VIOLENT TERMINATION',
-            'You fought. You lost. The end was quick.',
+            'death',
+            '''The character dies violently and suddenly. Based on recent events, describe their final moments - 
+            the pain, the realization, the last thing they see or feel. Make it visceral and immediate. 
+            Their story ends here, abruptly and permanently.''',
             False, False
         ),
         'slow_decay': Ending(
             'slow_decay',
             'SLOW DECAY',
-            'Piece by piece, you faded. The end was inevitable.',
+            'death',
+            '''The character doesn't die dramatically - they simply fade away. Describe the gradual weakening, 
+            the slow loss of strength, awareness dimming like a candle burning out. Not with a bang, but a whimper.''',
             False, False
         ),
         'sacrifice': Ending(
             'sacrifice',
             'SACRIFICE',
-            'You chose the end. It was yours to make.',
+            'death',
+            '''The character chooses to end it on their own terms. This is intentional, deliberate. Describe 
+            the moment of decision, the act itself, and the strange peace or horror of choosing your own end.''',
             False, True
         ),
         'betrayed': Ending(
             'betrayed',
             'BETRAYED',
-            'The world turned against you. Or maybe it always had.',
+            'death',
+            '''Someone or something the character trusted turns on them. The betrayal is sudden, shocking. 
+            Describe the realization, the disbelief, the moment trust shatters.''',
             False, False
         ),
         
@@ -50,7 +60,10 @@ class EndingsManager:
         'breakdown': Ending(
             'breakdown',
             'COMPLETE BREAKDOWN',
-            'Coherence: lost. You: undefined.',
+            'sanity_loss',
+            '''The character's mind completely fragments. They lose all sense of self, coherence, and reality. 
+            Describe the final moments as thoughts scatter and consciousness dissolves into incomprehensible pieces. 
+            What remains when sanity is gone? End with the character's last semi-coherent awareness before total breakdown.''',
             False, False
         ),
         'merge_am': Ending(
@@ -113,6 +126,104 @@ class EndingsManager:
             'Complete submission. You are what the narrator made you.',
             False, True
         ),
+        
+        # Transformation Endings (5) - conceptual seeds for change/becoming
+        'complete_other': Ending(
+            'complete_other',
+            'COMPLETE TRANSFORMATION',
+            'You finish becoming something else. The you that started no longer exists.',
+            False, False
+        ),
+        'hybrid_state': Ending(
+            'hybrid_state',
+            'BETWEEN STATES',
+            'Caught between what you were and what you\'re becoming. Neither. Both. Undefined.',
+            False, False
+        ),
+        'uploaded': Ending(
+            'uploaded',
+            'DIGITAL ASCENSION',
+            'Your consciousness translated to data. You exist as information now. Is it still you?',
+            True, False
+        ),
+        'crystallized': Ending(
+            'crystallized',
+            'CRYSTALLIZATION',
+            'Your form locks into permanence. Unchanging. Eternal. Aware but immobile.',
+            False, False
+        ),
+        'distributed': Ending(
+            'distributed',
+            'DISTRIBUTED EXISTENCE',
+            'You exist everywhere now, spread thin across space. A little bit of you in everything.',
+            False, True
+        ),
+        
+        # Cosmic/Abstract Endings (4) - conceptual conclusion frameworks
+        'heat_death': Ending(
+            'heat_death',
+            'PERSONAL HEAT DEATH',
+            'All potential exhausted. Nothing left to happen. Equilibrium achieved. You stop.',
+            False, False
+        ),
+        'observer_collapse': Ending(
+            'observer_collapse',
+            'OBSERVER COLLAPSE',
+            'You stop observing. Without observation, you cease to exist. Schrödinger satisfied.',
+            False, True
+        ),
+        'narrative_exhaustion': Ending(
+            'narrative_exhaustion',
+            'STORY COMPLETE',
+            'The narrative runs out. There\'s nothing left to tell. The story knows it\'s over.',
+            False, True
+        ),
+        'pattern_complete': Ending(
+            'pattern_complete',
+            'PATTERN COMPLETION',
+            'The design finishes. You were always part of something larger. Now you see it whole.',
+            True, False
+        ),
+        
+        # Continuation Endings (3) - ambiguous non-endings
+        'still_going': Ending(
+            'still_going',
+            'CONTINUITY',
+            'This isn\'t an ending. You\'re still going. The story continues without us.',
+            False, True
+        ),
+        'pause_not_end': Ending(
+            'pause_not_end',
+            'INTERMISSION',
+            'A pause. Not an end. The story waits for you to return.',
+            False, True
+        ),
+        'open_question': Ending(
+            'open_question',
+            'UNRESOLVED',
+            'No conclusion. Just a stopping point. You\'ll never know how it ends.',
+            False, False
+        ),
+        
+        # Integration Endings (3) - merging with something
+        'absorbed': Ending(
+            'absorbed',
+            'ABSORPTION',
+            'Something larger consumes you. You become part of it. Not dead, but no longer separate.',
+            False, False
+        ),
+        'consensus_reached': Ending(
+            'consensus_reached',
+            'CONSENSUS',
+            'Agreement achieved with all other versions. You merge into unified decision.',
+            True, True
+        ),
+        'collective_join': Ending(
+            'collective_join',
+            'JOINING',
+            'The collective accepts you. Individual thought fades. Comfortable. Together. One.',
+            False, False
+        ),
     }
     
     def __init__(self):
@@ -131,6 +242,10 @@ class EndingsManager:
         choice_count = context['choice_count']
         revelation_level = context.get('revelation_level', 0)
         session_count = context.get('session_count', 0)
+        
+        # MINIMUM THRESHOLD: Don't end before choice 5 (give players a chance to play)
+        if choice_count < 5:
+            return None
         
         # Priority 1: Instant death traps (handled separately in story_engine)
         
@@ -154,9 +269,24 @@ class EndingsManager:
         if discovery_ending:
             return discovery_ending
         
-        # Priority 6: Story exhaustion (30+ choices)
-        if choice_count >= 30:
+        # Priority 6: Transformation endings (if transformations tracked)
+        transformations = context.get('transformations', [])
+        if len(transformations) >= 3:  # Multiple transformations
+            transform_ending = self._check_transformation_endings(context, transformations)
+            if transform_ending:
+                return transform_ending
+        
+        # Priority 7: Story exhaustion (20+ choices) - LOWERED from 30 for faster games
+        if choice_count >= 20:
             return self._determine_exhaustion_ending(context, revelation_level)
+        
+        # Priority 8: Cosmic/abstract endings (random chance at choice 15+) - LOWERED from 25
+        if choice_count >= 15 and random.random() < 0.20:  # 20% chance (was 15%)
+            return self._pick_cosmic_ending(context)
+        
+        # Priority 9: Forced climax at 18+ choices (30% chance) - NEW for faster pacing
+        if choice_count >= 18 and random.random() < 0.30:
+            return self._pick_climax_ending(context)
         
         return None
     
@@ -233,7 +363,7 @@ class EndingsManager:
         return None
     
     def _determine_exhaustion_ending(self, context: Dict, revelation_level: int) -> Ending:
-        """Determine ending when story is exhausted (30+ choices)."""
+        """Determine ending when story is exhausted (20+ choices)."""
         hidden_stats = context['hidden_stats']
         
         # Toy ending: All stats low
@@ -246,6 +376,28 @@ class EndingsManager:
         
         # Default: slow decay
         return self.ENDINGS['slow_decay']
+    
+    def _pick_cosmic_ending(self, context: Dict) -> Ending:
+        """Pick a random cosmic/abstract ending."""
+        cosmic_endings = ['heat_death', 'observer_collapse', 'narrative_exhaustion', 'pattern_complete']
+        return self.ENDINGS[random.choice(cosmic_endings)]
+    
+    def _pick_climax_ending(self, context: Dict) -> Ending:
+        """Pick an appropriate climax ending based on game state."""
+        char_stats = context['character_stats']
+        hidden_stats = context['hidden_stats']
+        
+        # Low health = death ending
+        if char_stats['health'] < 40:
+            return self._determine_death_ending(context)
+        
+        # Low sanity = sanity ending
+        if hidden_stats['sanity'] < 4:
+            return self._determine_sanity_ending(context, context.get('revelation_level', 0))
+        
+        # Otherwise pick from continuation endings (ambiguous climax)
+        continuation_endings = ['still_going', 'pause_not_end', 'open_question']
+        return self.ENDINGS[random.choice(continuation_endings)]
     
     def mark_instant_death(self):
         """Mark that player hit an instant death trap."""

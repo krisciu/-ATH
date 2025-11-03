@@ -198,6 +198,127 @@ class MutationManager:
             "[REALITY FRACTURE: consensus required]",
             2
         ),
+        # VISUAL/COMPUTER HORROR MUTATIONS (15 more)
+        Mutation(
+            "Spiral Narrative",
+            "spiral_narrative",
+            MutationType.WILD,
+            "Text spirals across the screen",
+            "[REALITY FRACTURE: spatial corruption]",
+            1
+        ),
+        Mutation(
+            "Terminal Takeover",
+            "terminal_takeover",
+            MutationType.WILD,
+            "Fake terminal commands interrupt story",
+            "[SYSTEM OVERRIDE: shell access detected]",
+            1
+        ),
+        Mutation(
+            "Margin Madness",
+            "margin_madness",
+            MutationType.MODERATE,
+            "Marginalia and notes appear in the text",
+            "[REALITY SHIFT: annotation overflow]",
+            2
+        ),
+        Mutation(
+            "Redaction Protocol",
+            "redaction",
+            MutationType.MODERATE,
+            "Parts of narrative are censored/blacked out",
+            "[REALITY SHIFT: information classified]",
+            1
+        ),
+        Mutation(
+            "Echo Chamber Active",
+            "echo_active",
+            MutationType.MODERATE,
+            "Words repeat and echo across screen",
+            "[REALITY SHIFT: signal reflection]",
+            1
+        ),
+        Mutation(
+            "Static Vision",
+            "static_vision",
+            MutationType.WILD,
+            "Heavy static overlays all text",
+            "[REALITY FRACTURE: signal degradation]",
+            1
+        ),
+        Mutation(
+            "Permission Error",
+            "permission_error",
+            MutationType.WILD,
+            "Fake permission denied messages",
+            "[SYSTEM ERROR: access violation]",
+            0  # One-shot
+        ),
+        Mutation(
+            "Diagonal Slide",
+            "diagonal_slide",
+            MutationType.MODERATE,
+            "Text slides diagonally down screen",
+            "[REALITY SHIFT: gravity malfunction]",
+            1
+        ),
+        Mutation(
+            "Box Collapse",
+            "box_collapse",
+            MutationType.MODERATE,
+            "Text trapped in shrinking boxes",
+            "[REALITY SHIFT: spatial compression]",
+            1
+        ),
+        Mutation(
+            "Fade to Nothing",
+            "fade_nothing",
+            MutationType.WILD,
+            "Text progressively fades away",
+            "[REALITY FRACTURE: existence decay]",
+            1
+        ),
+        Mutation(
+            "Computer Horror",
+            "computer_horror",
+            MutationType.WILD,
+            "Meta messages about your actual computer/terminal",
+            "[BOUNDARY BREACH: observer detected]",
+            0  # One-shot
+        ),
+        Mutation(
+            "Mirror Reality",
+            "mirror_reality",
+            MutationType.WILD,
+            "Text and its reverse displayed simultaneously",
+            "[REALITY FRACTURE: reflection merge]",
+            1
+        ),
+        Mutation(
+            "Scattered Thoughts",
+            "scattered",
+            MutationType.MODERATE,
+            "Words scattered randomly across screen",
+            "[REALITY SHIFT: coherence dispersal]",
+            1
+        ),
+        Mutation(
+            "Breathing Text",
+            "breathing_text",
+            MutationType.MODERATE,
+            "Spacing expands and contracts",
+            "[REALITY SHIFT: spatial respiration]",
+            2
+        ),
+        Mutation(
+            "ASCII Intrusion",
+            "ascii_intrusion",
+            MutationType.WILD,
+            "Creepy ASCII art interrupts narrative",
+            "[REALITY FRACTURE: visual manifestation]",
+            0  # One-shot
+        ),
     ]
     
     def __init__(self):
@@ -475,6 +596,92 @@ def apply_mutation_to_narrative(
             else:
                 corrupted.append(word)
         return ' '.join(corrupted)
+    
+    # NEW VISUAL MUTATIONS
+    elif key == "spiral_narrative":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_spiral_text(narrative)
+    
+    elif key == "terminal_takeover":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        glitch = typo.create_terminal_glitch()
+        return f"{glitch}\n{narrative}\n{typo.create_cursor_artifact()}"
+    
+    elif key == "margin_madness":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_margin_notes(narrative)
+    
+    elif key == "redaction":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_redacted_text(narrative, 0.4)
+    
+    elif key == "echo_active":
+        # Echo key words
+        words = narrative.split()
+        if len(words) > 3:
+            from engine.typography import TypographyEngine
+            typo = TypographyEngine()
+            echo_word = random.choice(words[1:-1])
+            echoed = typo.create_echo_text(echo_word)
+            return narrative.replace(echo_word, echoed, 1)
+        return narrative
+    
+    elif key == "static_vision":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_static_overlay(narrative)
+    
+    elif key == "diagonal_slide":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_diagonal_text(narrative)
+    
+    elif key == "box_collapse":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_box_text(narrative)
+    
+    elif key == "fade_nothing":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_fading_text(narrative)
+    
+    elif key == "computer_horror":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        horror_msg = typo.get_computer_horror_message()
+        return f"{narrative}\n\n{horror_msg}"
+    
+    elif key == "mirror_reality":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_mirror_text(narrative)
+    
+    elif key == "scattered":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_scattered_text(narrative, 0.7)
+    
+    elif key == "breathing_text":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        return typo.create_breathing_space(narrative)
+    
+    elif key == "ascii_intrusion":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        art = typo.get_creepy_ascii_art()
+        return f"{art}\n\n{narrative}"
+    
+    elif key == "permission_error":
+        from engine.typography import TypographyEngine
+        typo = TypographyEngine()
+        error = typo.create_permission_denied()
+        return f"{error}\n\n{narrative}"
     
     return narrative
 

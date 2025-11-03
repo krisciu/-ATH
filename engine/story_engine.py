@@ -30,6 +30,14 @@ class StoryEngine:
         self.discoveries: List[str] = []  # Track what's been revealed
         self.active_threats: List[str] = []  # Ongoing dangers
         self.transformations: List[str] = []  # Body/reality changes
+        
+        # Horror concept tracking for variety
+        self.horror_concepts_used: List[str] = []  # Track tropes to avoid repetition
+        
+        # Narrative momentum tracking for faster pacing
+        self.momentum_level = 0  # Tracks narrative escalation
+        self.climax_triggered = False
+        self.must_end_soon = False  # Flag for forcing conclusion
     
     def process_choice(self, choice_text: str, choice_index: int) -> Dict:
         """Process a player choice and modify stats."""
@@ -52,46 +60,66 @@ class StoryEngine:
         return self.get_context()
     
     def _apply_choice_effects(self, choice_text: str, choice_index: int):
-        """Apply stat modifications based on choice content."""
+        """Apply stat modifications based on choice content - with early game protection."""
         text_lower = choice_text.lower()
+        
+        # Early game protection (first 5 choices) - prevent premature endings
+        early_game_multiplier = 1.0
+        if self.choice_count <= 5:
+            early_game_multiplier = 0.5  # Half damage/changes early on
         
         # Check for dangerous choices FIRST (consequences)
         danger_level = self._assess_choice_danger(text_lower)
         self.last_danger_level = danger_level  # Store for feedback
         self._apply_consequences(danger_level, text_lower)
         
-        # Courage modifications
+        # Track if any stat changed this turn
+        something_changed = False
+        
+        # Courage modifications - BIGGER SWINGS (with early game protection)
         if any(word in text_lower for word in ['attack', 'fight', 'confront', 'face', 'charge']):
-            self._modify_hidden_stat('courage', random.randint(1, 2))
-            self._modify_character_stat('strength', random.randint(-1, 1))
+            self._modify_hidden_stat('courage', int(random.randint(2, 4) * early_game_multiplier))
+            self._modify_character_stat('strength', int(random.randint(1, 3) * early_game_multiplier))
+            something_changed = True
         elif any(word in text_lower for word in ['flee', 'hide', 'retreat', 'avoid', 'run']):
-            self._modify_hidden_stat('courage', random.randint(-2, -1))
-            self._modify_character_stat('speed', random.randint(0, 1))
+            self._modify_hidden_stat('courage', int(random.randint(-4, -2) * early_game_multiplier))
+            self._modify_character_stat('speed', int(random.randint(0, 2) * early_game_multiplier))
+            something_changed = True
         
-        # Sanity modifications
+        # Sanity modifications - ALWAYS AFFECTED (with early game protection)
         if any(word in text_lower for word in ['look', 'examine', 'study', 'observe', 'stare']):
-            self._modify_hidden_stat('sanity', random.randint(-1, 0))
-            self._modify_hidden_stat('curiosity', random.randint(1, 2))
+            self._modify_hidden_stat('sanity', int(random.randint(-3, -1) * early_game_multiplier))
+            self._modify_hidden_stat('curiosity', int(random.randint(2, 4) * early_game_multiplier))
+            something_changed = True
         
-        # Curiosity modifications
+        # Curiosity modifications - BIGGER (with early game protection)
         if any(word in text_lower for word in ['open', 'read', 'touch', 'take', 'investigate']):
-            self._modify_hidden_stat('curiosity', random.randint(1, 2))
-            self._modify_hidden_stat('trust', random.randint(-1, 0))
+            self._modify_hidden_stat('curiosity', int(random.randint(2, 4) * early_game_multiplier))
+            self._modify_hidden_stat('trust', int(random.randint(-2, 0) * early_game_multiplier))
+            something_changed = True
         
-        # Trust modifications
+        # Trust modifications - BIGGER (with early game protection)
         if any(word in text_lower for word in ['listen', 'follow', 'trust', 'believe', 'accept']):
-            self._modify_hidden_stat('trust', random.randint(0, 2))
+            self._modify_hidden_stat('trust', int(random.randint(1, 3) * early_game_multiplier))
+            something_changed = True
         elif any(word in text_lower for word in ['ignore', 'refuse', 'doubt', 'question', 'reject']):
-            self._modify_hidden_stat('trust', random.randint(-2, 0))
-            self._modify_hidden_stat('courage', random.randint(0, 1))
+            self._modify_hidden_stat('trust', int(random.randint(-3, -1) * early_game_multiplier))
+            self._modify_hidden_stat('courage', int(random.randint(0, 2) * early_game_multiplier))
+            something_changed = True
         
-        # Random sanity drain (the world is unstable)
-        if random.random() < 0.3:
-            self._modify_hidden_stat('sanity', -1)
+        # FORCE CHANGE even on "neutral" choices - no passive choices allowed (with early game protection)
+        if not something_changed:
+            # Neutral choice = gradual decay
+            self._modify_hidden_stat('sanity', int(random.randint(-2, -1) * early_game_multiplier))
+            self._modify_character_stat('health', int(random.randint(-5, -1) * early_game_multiplier))
         
-        # Health modifications (occasional danger)
-        if random.random() < 0.15:
-            self._modify_character_stat('health', random.randint(-15, -5))
+        # Random sanity drain MORE OFTEN (the world is unstable) - with early game protection
+        if random.random() < 0.5:  # was 0.3
+            self._modify_hidden_stat('sanity', int(random.randint(-2, -1) * early_game_multiplier))
+        
+        # Health modifications MORE FREQUENT - with early game protection
+        if random.random() < 0.25:  # was 0.15
+            self._modify_character_stat('health', int(random.randint(-20, -8) * early_game_multiplier))
     
     def _modify_hidden_stat(self, stat: str, change: int):
         """Modify a hidden stat (clamped 0-10)."""
@@ -148,6 +176,9 @@ class StoryEngine:
     
     def get_context(self) -> Dict:
         """Get current context for AI generation."""
+        # Update momentum before returning context
+        self.update_momentum()
+        
         return {
             'character_stats': self.character_stats.copy(),
             'hidden_stats': self.hidden_stats.copy(),
@@ -162,6 +193,13 @@ class StoryEngine:
             'recent_discoveries': self.discoveries[-3:] if self.discoveries else [],
             'active_threats': self.active_threats.copy(),
             'transformations': self.transformations.copy(),
+            # Horror concept diversity tracking
+            'horror_concepts_used': self.horror_concepts_used.copy(),
+            'concept_diversity_prompt': self.get_concept_diversity_prompt(),
+            # Narrative momentum for faster pacing
+            'momentum_level': self.momentum_level,
+            'momentum_prompt': self.get_momentum_prompt_modifier(),
+            'must_end_soon': self.must_end_soon,
         }
     
     def set_narrative(self, narrative: str):
@@ -180,6 +218,124 @@ class StoryEngine:
         
         # Reset event timer
         self.event_timer = 0
+    
+    def detect_horror_concepts(self, narrative: str):
+        """Detect common horror tropes in narrative to track variety."""
+        concepts = {
+            'doppelganger': ['doppelganger', 'double', 'twin', 'copy', 'duplicate', 'reflection that moves', 'other you', 'another you', 'identical'],
+            'mirror': ['mirror', 'reflection', 'glass'],
+            'pursuit': ['chasing', 'following', 'pursuing', 'hunting you'],
+            'transformation': ['changing', 'transforming', 'morphing', 'becoming'],
+            'voices': ['voices', 'whispers', 'speaking', 'calling'],
+            'darkness': ['darkness', 'shadow', 'dark', 'blackness'],
+            'eyes': ['eyes watching', 'staring', 'gaze', 'observing'],
+            'doors': ['door', 'doorway', 'entrance', 'threshold'],
+            'time_loop': ['again', 'repeat', 'before', 'déjà vu', 'happened before'],
+            'body_horror': ['flesh', 'skin', 'bones', 'organs', 'blood'],
+            'isolation': ['alone', 'empty', 'abandoned', 'no one'],
+            'fragmentation': ['pieces', 'fragments', 'breaking apart', 'dissolving'],
+        }
+        
+        narrative_lower = narrative.lower()
+        for concept, keywords in concepts.items():
+            if any(keyword in narrative_lower for keyword in keywords):
+                if concept not in self.horror_concepts_used:
+                    self.horror_concepts_used.append(concept)
+    
+    def get_concept_diversity_prompt(self) -> str:
+        """Generate prompt section encouraging conceptual variety."""
+        if not self.horror_concepts_used:
+            return ""
+        
+        # Build positive steering (what to explore) rather than negative (what to avoid)
+        unused_concepts = [
+            'geometric impossibility', 'mathematical horror', 'sensory confusion',
+            'bureaucratic nightmare', 'linguistic breakdown', 'archaeological dread',
+            'chemical transformation', 'quantum uncertainty', 'biological invasion',
+            'architectural wrongness', 'temporal paradox', 'gravity distortion',
+            'sound-based horror', 'tactile wrongness', 'olfactory nightmare',
+            'pressure changes', 'temperature extremes', 'spatial compression',
+            'crowd horror', 'absence of expected', 'too many of something',
+            'scale distortion', 'texture horror', 'pattern recognition failure'
+        ]
+        
+        # If we've used many concepts, suggest fresh angles
+        if len(self.horror_concepts_used) >= 3:
+            suggestions = [c for c in unused_concepts if random.random() < 0.4][:3]
+            if suggestions:
+                return f"\n\nFRESH ANGLES TO EXPLORE: Consider incorporating: {', '.join(suggestions)}\nALREADY EXPLORED THIS SESSION: {', '.join(self.horror_concepts_used[-5:])} - find new ways to unsettle"
+        
+        return ""
+    
+    def update_momentum(self):
+        """Track narrative momentum to force climax - ensures faster pacing."""
+        # Momentum increases with choices, danger, low stats
+        if self.choice_count >= 12:
+            self.momentum_level += 2
+        elif self.choice_count >= 8:
+            self.momentum_level += 1
+        
+        if self.character_stats['health'] < 30:
+            self.momentum_level += 2
+        
+        if self.hidden_stats['sanity'] < 3:
+            self.momentum_level += 3
+        
+        # Critical momentum = must end soon
+        if self.momentum_level >= 15 and not self.climax_triggered:
+            self.climax_triggered = True
+            self.must_end_soon = True
+        
+        return self.momentum_level
+    
+    def get_momentum_prompt_modifier(self) -> str:
+        """Add momentum-based urgency to AI prompts."""
+        if self.must_end_soon:
+            return "\n\n⚠️ CRITICAL: Story MUST reach climax NOW. Build to ending. This cannot continue much longer."
+        elif self.momentum_level >= 10:
+            return "\n\nURGENT: Story is accelerating toward climax. Raise stakes dramatically."
+        elif self.momentum_level >= 5:
+            return "\n\nBuilding momentum: Begin escalating toward climax."
+        return ""
+    
+    def detect_trap_choice(self, choice_text: str) -> bool:
+        """Detect if player chose an obvious trap/bad choice (classic CYOA mechanic)."""
+        trap_indicators = [
+            'ignore warning', 'ignore the warning', 'ignore all',
+            'obviously', 'despite', 'anyway', 'against',
+            'clearly dangerous', 'strange liquid', 'unknown substance',
+            'trust the', 'believe the', 'follow the monster',
+            'touch the', 'grab the', 'drink the', 'eat the',
+            'step into the trap', 'walk into',
+        ]
+        
+        text_lower = choice_text.lower()
+        
+        # Check for trap indicators
+        for indicator in trap_indicators:
+            if indicator in text_lower:
+                return True
+        
+        # Check for parenthetical warnings being ignored
+        if '(' in choice_text and ')' in choice_text:
+            # Extract parenthetical content
+            paren_content = choice_text[choice_text.find('(')+1:choice_text.find(')')].lower()
+            warning_words = ['poison', 'danger', 'trap', 'dead', 'death', 'hurt', 'bad', 'kill', 'fatal']
+            if any(word in paren_content for word in warning_words):
+                return True
+        
+        return False
+    
+    def apply_trap_consequences(self):
+        """Apply severe consequences for choosing obvious trap choices."""
+        # Immediate heavy damage
+        self._modify_character_stat('health', random.randint(-40, -25))  # Massive damage
+        self._modify_hidden_stat('sanity', random.randint(-3, -1))
+        
+        # Set flag for forced bad outcome
+        self.event_flags.append('TRAP_TRIGGERED')
+        self.must_end_soon = True  # Force ending soon after trap
+        self.momentum_level += 5  # Jump momentum
     
     def _assess_choice_danger(self, choice_text: str) -> str:
         """

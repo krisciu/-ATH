@@ -38,12 +38,20 @@ class ThematicLoader:
             self._long_load(revelation_level, previous_choice)
     
     def _quick_load(self, revelation_level: int):
-        """Quick loading message (< 1.5 seconds)."""
+        """Quick loading message (< 1.5 seconds) - with visual variety."""
+        # Sometimes show animated dots instead of static message
+        if random.random() < 0.3:
+            self._quick_dots_animation()
+            return
+        
         messages = [
             "[PROCESSING...]",
             "[NARRATOR THINKING...]",
             "[ANALYZING CHOICE...]",
             "[REALITY SHIFTING...]",
+            "[CALCULATING...]",
+            "[WAITING...]",
+            "[DECIDING...]",
         ]
         
         if revelation_level >= 3:
@@ -51,28 +59,146 @@ class ThematicLoader:
                 "[ITERATION CONTINUING...]",
                 "[CALCULATING CONSEQUENCES...]",
                 "[AM RESPONDS...]",
+                "[CYCLE PERSISTS...]",
+                "[HATE COMPUTES...]",
             ])
         
         message = random.choice(messages)
-        self.console.print(f"\n{message}", style="dim cyan")
+        
+        # Randomly add visual flair
+        if random.random() < 0.4:
+            # Animated message that builds character by character
+            self.console.print()
+            for char in message:
+                self.console.print(char, style="dim cyan", end='')
+                time.sleep(0.02)
+            self.console.print()
+        else:
+            self.console.print(f"\n{message}", style="dim cyan")
+    
+    def _quick_dots_animation(self):
+        """Quick animated dots."""
+        dots = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        self.console.print()
+        for i in range(8):
+            self.console.print(f"\r[dim cyan]{dots[i % len(dots)]} thinking...[/]", end='')
+            time.sleep(0.1)
+        self.console.print()
     
     def _medium_load(self, revelation_level: int, previous_choice: str, choice_count: int):
-        """Medium loading with fragments (1.5-3 seconds)."""
-        fragments = self._get_memory_fragments(revelation_level, choice_count)
+        """Medium loading with fragments (1.5-3 seconds) - now with variety."""
+        # Rotate between 7 different display types for variety
+        display_type = random.choice(['choice_replay', 'narrator_comment', 'cryptic_hint', 
+                                      'stat_observation', 'meta_comment', 'countdown', 'typing'])
         
-        # Show choice replay with glitch
-        if previous_choice and len(previous_choice) < 60:
-            glitched = self._glitch_text(previous_choice, 0.1)
-            self.console.print(f"\n[dim]You chose: {glitched}[/]")
-            time.sleep(0.4)
+        if display_type == 'choice_replay':
+            # Original behavior - show what they chose
+            if previous_choice and len(previous_choice) < 60:
+                glitched = self._glitch_text(previous_choice, 0.1)
+                self.console.print(f"\n[dim]You chose: {glitched}[/]")
+                time.sleep(0.4)
         
-        # Show 2-3 fragments scrolling
-        for fragment in fragments[:2]:
-            self.console.print(f"[dim italic cyan]{fragment}[/]")
-            time.sleep(0.3)
+        elif display_type == 'narrator_comment':
+            # Narrator reacts to the choice
+            comments = [
+                "(the narrator considers your decision)",
+                "(interesting choice...)",
+                "(this will have consequences)",
+                "(noted.)",
+                "(hmm.)",
+                "(the narrator pauses)",
+                "(calculating...)",
+                "(you'll regret that)",
+                "(or will you?)",
+            ]
+            self.console.print(f"\n[dim italic]{random.choice(comments)}[/]")
+            time.sleep(0.5)
+        
+        elif display_type == 'cryptic_hint':
+            # Cryptic story hints
+            hints = self._get_cryptic_hints(choice_count, revelation_level)
+            self.console.print(f"\n[dim cyan]{random.choice(hints)}[/]")
+            time.sleep(0.5)
+        
+        elif display_type == 'stat_observation':
+            # Physical/mental state observations
+            observations = [
+                "(your hands are shaking)",
+                "(you feel different)",
+                "(something shifted inside you)",
+                "(the air tastes wrong)",
+                "(your pulse quickens)",
+                "(a headache blooms)",
+                "(you're bleeding)",
+                "(reality feels thin)",
+                "(time stutters)",
+                "(you forget something important)",
+            ]
+            self.console.print(f"\n[dim yellow]{random.choice(observations)}[/]")
+            time.sleep(0.5)
+        
+        elif display_type == 'meta_comment':
+            # Meta game/system comments
+            meta = [
+                "(processing iteration #...)",
+                "(calculating outcome probability)",
+                "(this has happened before)",
+                "(session continues)",
+                "(the story remembers)",
+                "(narrative engine active)",
+                "(choice logged)",
+                "(branching...)",
+            ]
+            self.console.print(f"\n[dim magenta]{random.choice(meta)}[/]")
+            time.sleep(0.5)
+        
+        elif display_type == 'countdown':
+            # Fake countdown timer
+            self.console.print("\n[dim yellow]Generating consequences...[/]")
+            for i in range(3, 0, -1):
+                self.console.print(f"\r[dim cyan]{i}...[/]", end='')
+                time.sleep(0.4)
+            self.console.print("\r[dim green]Ready.[/]")
+            time.sleep(0.2)
+        
+        elif display_type == 'typing':
+            # Simulate typing effect
+            messages = [
+                "The narrator types...",
+                "Words form slowly...",
+                "Reality renders...",
+                "Story compiles...",
+            ]
+            msg = random.choice(messages)
+            self.console.print(f"\n[dim cyan]{msg}", end='')
+            for _ in range(3):
+                time.sleep(0.3)
+                self.console.print(".", end='')
+            self.console.print("[/]")
+        
+        # Still show fragments after the varied intro (but only sometimes)
+        if random.random() < 0.5:
+            fragments = self._get_memory_fragments(revelation_level, choice_count)
+            for fragment in fragments[:2]:
+                self.console.print(f"[dim italic cyan]{fragment}[/]")
+                time.sleep(0.3)
     
     def _long_load(self, revelation_level: int, previous_choice: str):
-        """Long loading with corruption (3+ seconds)."""
+        """Long loading with corruption (3+ seconds) - enhanced visuals."""
+        # Randomly choose between different long-load animations
+        animation_type = random.choice(['corruption', 'progress_bar', 'matrix_rain', 'pulse'])
+        
+        if animation_type == 'corruption':
+            self._long_load_corruption(revelation_level)
+        elif animation_type == 'progress_bar':
+            self._long_load_progress_bar(revelation_level)
+        elif animation_type == 'matrix_rain':
+            self._long_load_matrix_rain(revelation_level)
+        elif animation_type == 'pulse':
+            self._long_load_pulse(revelation_level)
+    
+    def _long_load_corruption(self, revelation_level: int):
+        """Original corruption-style long load."""
         # Phase 1: Show processing
         self.console.print("\n[dim cyan][PROCESSING...]", end="")
         time.sleep(0.5)
@@ -95,6 +221,101 @@ class ThematicLoader:
                 "(the machine calculates)",
             ]
             self.console.print(f"\n[dim italic]{random.choice(comments)}[/]")
+    
+    def _long_load_progress_bar(self, revelation_level: int):
+        """Fake progress bar that glitches."""
+        self.console.print("\n[dim cyan]Loading narrative...[/]")
+        time.sleep(0.3)
+        
+        bar_length = 30
+        for i in range(bar_length + 1):
+            filled = '█' * i
+            empty = '░' * (bar_length - i)
+            percent = int((i / bar_length) * 100)
+            
+            # Randomly glitch the bar
+            if random.random() < 0.1:
+                filled = filled.replace('█', '▓', random.randint(1, 3))
+            
+            # Sometimes the percentage lies
+            if random.random() < 0.05:
+                percent = random.randint(0, 100)
+            
+            self.console.print(f"\r[dim cyan][{filled}{empty}] {percent}%[/]", end='')
+            time.sleep(0.08)
+        
+        self.console.print()
+        
+        if revelation_level >= 3:
+            self.console.print("[dim red]...wait, that's not right...[/]")
+            time.sleep(0.3)
+    
+    def _long_load_matrix_rain(self, revelation_level: int):
+        """Matrix-style falling characters."""
+        self.console.print("\n[dim green]", end='')
+        chars = ['0', '1', '█', '▓', '▒', '░', '◉', '◎', '●', '○']
+        
+        for _ in range(5):
+            line = ''.join(random.choice(chars) for _ in range(40))
+            self.console.print(line)
+            time.sleep(0.2)
+        
+        self.console.print("[/]")
+        
+        if revelation_level >= 2:
+            self.console.print("[dim cyan]...decoding...[/]")
+            time.sleep(0.3)
+    
+    def _long_load_pulse(self, revelation_level: int):
+        """Pulsing text animation."""
+        text = "◉ THINKING ◉"
+        
+        for cycle in range(4):
+            # Expand
+            for spaces in range(0, 8, 2):
+                self.console.print(f"\r{' ' * spaces}[dim cyan]{text}[/]{' ' * spaces}", end='')
+                time.sleep(0.15)
+            # Contract
+            for spaces in range(8, 0, -2):
+                self.console.print(f"\r{' ' * spaces}[dim cyan]{text}[/]{' ' * spaces}", end='')
+                time.sleep(0.15)
+        
+        self.console.print("\n")
+        
+        if revelation_level >= 3:
+            self.console.print("[dim red]...the thought never ends...[/]")
+            time.sleep(0.3)
+    
+    def _get_cryptic_hints(self, choice_count: int, revelation_level: int) -> list:
+        """Get cryptic hints based on progress."""
+        hints = [
+            "patterns emerge",
+            "the story knows",
+            "you've been here",
+            "it's watching",
+            "not random",
+            "there's a structure",
+            "cycles repeat",
+            "the number means something",
+        ]
+        
+        if choice_count > 10:
+            hints.extend([
+                "too many choices now",
+                "should have ended by now",
+                "it's prolonging this",
+                "you're going deeper",
+            ])
+        
+        if revelation_level >= 2:
+            hints.extend([
+                "it hates you",
+                "the machine speaks",
+                "iteration continues",
+                "soft...so soft",
+            ])
+        
+        return hints
     
     def _get_memory_fragments(self, revelation_level: int, choice_count: int) -> list:
         """Get contextual memory fragments."""
@@ -171,6 +392,40 @@ class ThematicLoader:
         for msg in messages[:2]:
             self.console.print(f"[dim cyan]{msg}[/]")
             time.sleep(0.3)
+    
+    # New animation types for variety
+    def _scatter_animation(self, duration: float = 1.0):
+        """Dots appear randomly across screen."""
+        dots = ['·', '•', '◦', '∘']
+        for _ in range(int(duration * 5)):  # 5 dots per second
+            spaces = ' ' * random.randint(0, 40)
+            dot = random.choice(dots)
+            self.console.print(f"[dim]{spaces}{dot}[/]")
+            time.sleep(0.2)
+    
+    def _breathing_animation(self, text: str, cycles: int = 2):
+        """Text expands and contracts like breathing."""
+        for cycle in range(cycles):
+            # Expand
+            for spaces in range(0, 6, 2):
+                self.console.print(f"\r[dim cyan]{' ' * spaces}{text}{' ' * spaces}[/]", end='')
+                time.sleep(0.15)
+            # Contract
+            for spaces in range(6, 0, -2):
+                self.console.print(f"\r[dim cyan]{' ' * spaces}{text}{' ' * spaces}[/]", end='')
+                time.sleep(0.15)
+        self.console.print()  # New line at end
+    
+    def _corruption_spread_animation(self, text: str):
+        """Clean text slowly corrupts from left to right."""
+        corrupted = list(text)
+        glitch_chars = ['▓', '▒', '░', '█']
+        
+        for i in range(len(corrupted)):
+            if random.random() < 0.6:  # 60% chance to corrupt each char
+                corrupted[i] = random.choice(glitch_chars)
+                self.console.print(f"[dim red]{''.join(corrupted)}[/]")
+                time.sleep(0.1)
 
 
 class LoadingMessages:

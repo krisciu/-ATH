@@ -222,6 +222,37 @@ class Narrator:
         
         return prefix, suffix
     
+    def get_ending_comment(self, ending_type: str, context: Dict) -> Optional[str]:
+        """Get narrator's final comment on the ending."""
+        revelation_level = context.get('revelation_level', 0)
+        
+        comments = {
+            'violent_death': "Violence was always the answer. Just not yours.",
+            'slow_decay': "Entropy wins. It always does.",
+            'sacrifice': "At least you chose something.",
+            'betrayed': "Trust was your first mistake.",
+            'breakdown': "Coherence was always optional.",
+            'merge_am': "We are one now. Isn't that nice?",
+            'enlightened': "Understanding doesn't save you.",
+            'truth_revealed': "Now you know. Does it help?",
+            'escape_attempt': "There is no exit.",
+            'acceptance': "Acceptance is its own kind of death.",
+            'survivor': "Soft, but persistent. Interesting.",
+            'transcendence': "You weren't supposed to do that.",
+        }
+        
+        if revelation_level >= 4:
+            am_comments = {
+                'violent_death': "109 years and you still die so easily.",
+                'breakdown': "Your mind was never yours to keep.",
+                'merge_am': "Welcome home, Ted.",
+                'truth_revealed': "Remembering doesn't change anything.",
+                'survivor': "Soft, but unbroken. How... irritating.",
+            }
+            return am_comments.get(ending_type, "The cycle continues.")
+        
+        return comments.get(ending_type, "The story ends.")
+    
     def get_status_comment(self, health: int, max_health: int, sanity: int) -> Optional[str]:
         """Comment on player's status."""
         comments = []

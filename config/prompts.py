@@ -1,5 +1,8 @@
 """Prompt engineering templates for AI generation."""
 
+from typing import Dict
+
+
 def get_system_prompt():
     """Base system prompt for the narrator."""
     return """You are the narrator for ~ATH, a literary horror choose-your-own-adventure game.
@@ -114,6 +117,12 @@ def get_scene_generation_prompt(context):
     # Scenario/theme constraints if present
     scenario_constraints = context.get('scenario_constraints', '')
     
+    # Horror concept diversity (steer away from overused tropes)
+    concept_diversity = context.get('concept_diversity_prompt', '')
+    
+    # Narrative momentum (faster pacing)
+    momentum_prompt = context.get('momentum_prompt', '')
+    
     # Build event progression section
     event_section = ""
     if event_urgency:
@@ -141,12 +150,25 @@ HIDDEN NARRATIVE STATE (use this to influence your tone, the player cannot see t
 
 STYLE INSTRUCTIONS: {style_instructions}{revelation_hint}
 
-{scenario_constraints}
+{scenario_constraints}{concept_diversity}
+
+{momentum_prompt}
 
 PROGRESSION REQUIREMENTS:
 - Every 2-3 choices: Major event must occur (chase sequence, transformation, discovery, confrontation)
 - AVOID: Vague atmosphere, "you sense something", unclear spaces, wandering
 - REQUIRE: Specific actions, visible changes, tangible threats, concrete events{event_section}
+
+CHOICE DESIGN (Classic CYOA):
+- Occasionally (20% chance) include ONE obviously bad choice that will lead to immediate consequences
+- Make trap choices CLEARLY dangerous through wording: "ignore the warning", "drink the strange liquid", "touch the obviously electrified", "step into the obvious trap"
+- These should be fair - player knows it's risky but might do it anyway
+- Good trap examples:
+  * "Drink the bubbling green liquid (it smells like poison)"
+  * "Ignore all warnings and charge forward"
+  * "Put your hand directly into the grinding machine"
+  * "Trust the entity that just lied to you"
+- Normal choices should remain ambiguous/reasonable
 
 Generate the next scene and 2-4 choices based on their decision. Make something happen."""
     
@@ -211,18 +233,123 @@ def get_revelation_modifiers(revelation_level: int, breadcrumb_active: bool = Fa
     return "\n".join(modifiers)
 
 def get_ascii_art_prompt(subject, mood, stat_level):
-    """Generate ASCII art for characters/scenes."""
+    """Generate detailed ASCII art with specific constraints."""
+    
+    # Examples to guide the AI
+    examples = """
+GOOD examples (detailed, recognizable shapes):
+    ╱╲    ╱╲
+   ╱  ╲__╱  ╲
+  │  ◉  ◉  │
+   ╲  ───  ╱
+    ╲______╱
+
+BAD examples (avoid vague blobs):
+  ░▒▓█▓▒░
+  ▓▒░░▒▓
+"""
+    
+    # Specific instructions for common subjects
+    subject_lower = subject.lower()
+    specific_hint = ""
+    
+    if 'hand' in subject_lower or 'finger' in subject_lower:
+        specific_hint = "Draw hands with clear fingers (show 5 per hand). Use ╱, ╲, │ for finger shapes."
+    elif 'eye' in subject_lower or 'gaze' in subject_lower or 'watching' in subject_lower:
+        specific_hint = "Draw eyes with pupils clearly visible. Use ◉, (◉), or 👁️ with surrounding detail."
+    elif 'skull' in subject_lower or 'skeletal' in subject_lower or 'death' in subject_lower:
+        specific_hint = "Draw skull shape with eye sockets, nose cavity. Use ☠ or draw ┌┐└┘ for skull frame."
+    elif 'mouth' in subject_lower or 'teeth' in subject_lower:
+        specific_hint = "Draw mouth with teeth clearly visible. Use ▲▼ for teeth, ╱╲ for mouth shape."
+    elif 'face' in subject_lower or 'head' in subject_lower:
+        specific_hint = "Draw face with eyes, nose, mouth clearly positioned. Show facial structure."
+    elif 'door' in subject_lower or 'entrance' in subject_lower or 'threshold' in subject_lower:
+        specific_hint = "Draw doorframe with ┌┐└┘ or similar. Show clear rectangular structure."
+    elif 'machine' in subject_lower or 'mechanical' in subject_lower or 'computational' in subject_lower:
+        specific_hint = "Draw machine with clear geometric shapes ╔╗╚╝, panels ═║, and indicators."
+    elif 'flesh' in subject_lower or 'organic' in subject_lower or 'body' in subject_lower:
+        specific_hint = "Draw organic shapes with curves ╱╲, show texture with ▓▒░, make it look biological."
+    else:
+        specific_hint = "Draw with clear, recognizable shapes. Avoid abstract blobs."
+    
+    # Corruption instructions
     corruption = ""
     if stat_level < 3:
-        corruption = "The art should be partially corrupted or incomplete."
+        corruption = "\nThe art should be partially corrupted - some lines broken, static ▓▒░ mixed in."
     elif stat_level < 5:
-        corruption = "The art should have minor imperfections."
+        corruption = "\nThe art should have minor imperfections - one or two lines slightly off."
     
-    return f"""Generate simple ASCII art of: {subject}
-Mood: {mood}
-Constraints: Maximum 15 lines wide, 10 lines tall. Use only ASCII characters.
-{corruption}
-Output ONLY the ASCII art, no explanations or markdown code blocks."""
+    return f"""Create DETAILED ASCII art of: {subject}
+Mood/tone: {mood}
+
+CRITICAL REQUIREMENTS:
+- Be SPECIFIC and DETAILED, not abstract blobs
+- Draw recognizable shapes with clear structure
+- Use box-drawing characters: ─ │ ╱ ╲ ╭ ╮ ╰ ╯ ┌ ┐ └ ┘ ╔ ╗ ╚ ╝ ═ ║
+- Maximum 12 lines tall, 20 characters wide
+- Include emojis if helpful: 👁️ 🖐️ ☠️ 👄
+
+{examples}
+
+SPECIFIC GUIDANCE: {specific_hint}{corruption}
+
+Output ONLY the ASCII art, no explanations or markdown blocks."""
+
+def get_ending_generation_prompt(ending, context: Dict) -> str:
+    """Generate prompt for AI to create ending narrative."""
+    
+    recent_narrative = context.get('recent_narrative', '')
+    choice_count = context['choice_count']
+    revelation_level = context.get('revelation_level', 0)
+    char_stats = context['character_stats']
+    hidden_stats = context['hidden_stats']
+    
+    # Extract last moment from recent narrative
+    last_moment = ""
+    if recent_narrative:
+        sentences = recent_narrative.split('.')
+        if len(sentences) > 1:
+            last_moment = sentences[-2].strip()
+    
+    # Get ending seed (handle both old and new format)
+    ending_seed = ending.ai_seed if hasattr(ending, 'ai_seed') else ending.description
+    ending_category = ending.ending_category if hasattr(ending, 'ending_category') else 'death'
+    is_good = ending.is_good if hasattr(ending, 'is_good') else False
+    
+    prompt = f"""You are writing the ENDING of a horror choose-your-own-adventure story.
+
+ENDING TYPE: {ending.name}
+ENDING GUIDANCE: {ending_seed}
+
+STORY CONTEXT:
+- Choices made: {choice_count}
+- Character health: {char_stats['health']}/{char_stats['max_health']}
+- Recent events: {last_moment}
+
+REVELATION LEVEL: {revelation_level}/5
+"""
+    
+    if revelation_level >= 3:
+        prompt += """
+DEEPER TRUTH: This story is secretly connected to "I Have No Mouth, and I Must Scream". 
+The character may be Ted, transformed by AM. The narrator may be AM itself. Reference this 
+subtly if appropriate to the ending type."""
+    
+    tone = "triumphant but unsettling" if is_good else "dark and grim"
+    
+    prompt += f"""
+
+REQUIREMENTS:
+1. Write 4-6 sentences describing the ending
+2. Connect to recent events: "{last_moment}"
+3. Make it FINAL - this is the conclusion
+4. Be visceral and specific, not vague
+5. End with a powerful final image or realization
+6. Match the tone of {ending_category}: {tone}
+
+Write ONLY the ending narrative, no meta-commentary."""
+    
+    return prompt
 
 def get_opening_scene_prompt(scenario_data=None):
     """

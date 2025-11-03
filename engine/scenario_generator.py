@@ -62,8 +62,11 @@ class ScenarioGenerator:
             "BODY HORROR AWAKENING",
             "body_horror",
             "Your body is transforming, something is wrong",
-            "Your hand looks wrong. Too many joints. The skin ripples. You try to move your fingers—they respond, but there are more than five now. Your flesh is soft, malleable. This isn't your body. Or it wasn't.",
-            ["Physical transformation", "Flesh horror", "Loss of form", "Tactile wrongness"]
+            """Your hand looks wrong. Too many joints. The skin ripples like water. You try to move your fingers—they respond, but there are more than five now, and they're growing longer, splitting at the tips. Your flesh is soft, malleable, warm like clay left in the sun. You can feel new organs forming inside, pressing against ribs that are bending outward.
+
+AVOID: mirrors, reflections, seeing yourself, doppelgangers, copies
+EMPHASIZE: Tactile sensations, internal changes, bone movement, joint addition, texture shifts, the feeling of becoming plural from within""",
+            ["Physical transformation", "Flesh horror", "Loss of form", "Tactile wrongness", "Internal metamorphosis"]
         ),
         Scenario(
             "COMPUTATIONAL NIGHTMARE",
@@ -135,9 +138,114 @@ class ScenarioGenerator:
             "LOADING... ERROR... RETRY... You're inside a program. Walls are textures, stretched and glitching. NPCs repeat dialogue loops. You try to exit. There's no exit command. The system administrator is watching. They're changing the rules.",
             ["Virtual prison", "Game logic horror", "Glitch reality", "Administrator presence"]
         ),
+        Scenario(
+            "SOUND PRISON",
+            "sound_prison",
+            "Trapped by sound, silence is deadly",
+            "You wake to absolute silence. Moving creates sound. Every sound draws something closer. You hear breathing that isn't yours. The silence between your heartbeats feels dangerous. You must make noise to survive, but noise summons them.",
+            ["Audio horror", "Sound as danger", "Silent predator", "Acoustic awareness"]
+        ),
+        Scenario(
+            "INFECTION POINT",
+            "infection",
+            "Something is spreading through you",
+            "Your veins are black. You can see them spreading under your skin like cracks in ice. It doesn't hurt. That's the worst part. You feel... better. Stronger. Different. The infection wants something. You can almost hear what it's saying.",
+            ["Body invasion", "Transformation", "Loss of self", "Parasitic horror"]
+        ),
+        Scenario(
+            "WITNESSED",
+            "witnessed",
+            "Every choice is being recorded and judged",
+            "You notice the camera. Then another. Then dozens. Red lights blinking. Recording everything. Someone is watching. Taking notes. Judging. You don't know who or why. Every movement feels like a test you're failing.",
+            ["Surveillance horror", "Performance anxiety", "Judgment", "Unseen watchers"]
+        ),
+        Scenario(
+            "BACKWARDS BIRTH",
+            "backwards_birth",
+            "You're being un-born, regression into nothing",
+            "You're getting smaller. Younger. Your memories are disappearing in reverse chronological order. You remember yesterday clearly. Last year is fuzzy. Childhood is gone. Soon you won't remember language. Then thought. Then nothing.",
+            ["Regression", "Memory loss", "Identity erosion", "Temporal reversal"]
+        ),
+        Scenario(
+            "SHADOW DEBT",
+            "shadow_debt",
+            "Your shadow is collecting what you owe",
+            "Your shadow doesn't match your movements anymore. It's doing other things. Taking things. It whispers that you owe a debt. You don't remember owing anything. Your shadow remembers. It's here to collect.",
+            ["Shadow horror", "Debt", "Doppelganger", "Supernatural obligation"]
+        ),
+        Scenario(
+            "WORD VIRUS",
+            "word_virus",
+            "Certain words are dangerous, language is breaking",
+            "Don't say—[REDACTED]. The word is gone. You try to remember it but there's a blank space in your mind. More words are disappearing. Communication is fracturing. Soon you won't be able to think. Language is the infection.",
+            ["Linguistic horror", "Communication breakdown", "Memetic hazard", "Conceptual erasure"]
+        ),
+        Scenario(
+            "RECURSIVE WITNESS",
+            "recursive",
+            "You're watching yourself watching yourself",
+            "You see yourself across the room. They're looking at you. Behind them, another you. And another. Infinite regression. Each iteration is slightly different. Slightly wrong. One of them isn't you. You don't know which.",
+            ["Infinite regression", "Mirror horror", "Self-observation", "Iteration terror"]
+        ),
+        Scenario(
+            "FLESH ARCHITECTURE",
+            "flesh_architecture",
+            "The building is made of meat and it's alive",
+            "The walls are warm. Pulsing. You realize you're inside something enormous and living. The floor breathes. Doors are sphincters. The building digests those who stay too long. It's hungry. You're inside its stomach.",
+            ["Organic horror", "Living structure", "Digestive threat", "Meat maze"]
+        ),
+        Scenario(
+            "PROBABILITY COLLAPSE",
+            "probability",
+            "Reality is splitting with every choice",
+            "You can see them all. Every version of yourself making different choices. The realities are stacked, translucent, overlapping. You're all of them simultaneously. Each decision splits you further. You're becoming infinite and losing definition.",
+            ["Quantum horror", "Choice paralysis", "Reality splitting", "Multiverse awareness"]
+        ),
+        Scenario(
+            "DEBT COLLECTOR",
+            "debt_collector",
+            "Something demands payment for living",
+            "The invoice appears in your hand. For: ONE LIFE LIVED. Amount: EVERYTHING. Due: NOW. The collector stands at the door. Tall, wrong, patient. You've been borrowing time. The interest is steep. Payment will be extracted.",
+            ["Supernatural debt", "Life collection", "Extraction horror", "Cosmic billing"]
+        ),
+        Scenario(
+            "STATIC PERSON",
+            "static_person",
+            "You're becoming television static",
+            "Your fingers are dissolving into static. Visual noise where your hands should be. The static spreads. Soon you'll be nothing but white noise and interference patterns. You can hear voices in the static. They sound like you.",
+            ["Signal degradation", "Static transformation", "Broadcast horror", "Signal/noise"]
+        ),
+        Scenario(
+            "THE AUDITION",
+            "audition",
+            "This is a test for something terrible",
+            "You're in a waiting room. Others are called before you. They don't come back. Your number approaches. You don't know what you're auditioning for. You don't remember signing up. But if you leave, they'll know you failed.",
+            ["Test anxiety", "Unknown evaluation", "Elimination horror", "Performance dread"]
+        ),
+        Scenario(
+            "NEGATIVE SPACE",
+            "negative_space",
+            "You exist in the space between things",
+            "You're not in a place. You're in the absence of place. The gaps between atoms. The silence between sounds. Negative space given consciousness. You can see reality from the outside. It's thin. Fragile. Temporary.",
+            ["Void existence", "Between-state", "Absence horror", "Gap consciousness"]
+        ),
+        Scenario(
+            "CONSENSUS REALITY",
+            "consensus",
+            "Reality only exists when observed",
+            "You blink. The room changes. Everything exists only while you're looking at it. Turn away and it becomes undefined. The world behind you is pure probability. You're the only thing holding reality together. If you close your eyes too long...",
+            ["Observer effect", "Reality maintenance", "Quantum observation", "Existence burden"]
+        ),
+        Scenario(
+            "ANCESTRAL MEMORY",
+            "ancestral",
+            "You remember lives you never lived",
+            "You died in 1847. No wait, you're alive now. You remember burning at the stake. You remember the trenches. You remember being eaten by something that doesn't exist yet. These aren't dreams. They're memories. Every ancestor is inside you, screaming.",
+            ["Genetic memory", "Historical trauma", "Inherited horror", "Past life bleeding"]
+        ),
     ]
     
-    # 10 thematic seeds
+    # 20 thematic seeds (conceptual constraints for AI creativity)
     THEMES = [
         Theme(
             "Velocity Focus",
@@ -145,6 +253,34 @@ class ScenarioGenerator:
             "Constant motion, time pressure, no pauses",
             "Keep the protagonist moving. Clock is always ticking. No safe stops.",
             ["Chase sequences", "Time limits", "Breathless pacing", "No respite"]
+        ),
+        Theme(
+            "Liquid Reality",
+            "liquid",
+            "Everything flows, nothing is solid",
+            "Solid things melt. Boundaries are permeable. Reality has surface tension but no structure.",
+            ["Melting", "Fluidity", "Boundary dissolution", "State changes"]
+        ),
+        Theme(
+            "Arithmetic Horror",
+            "arithmetic",
+            "Numbers are wrong, math doesn't work",
+            "1+1≠2. Counting fails. Quantities shift. Mathematical rules break down.",
+            ["Wrong math", "Counting errors", "Numerical impossibility", "Quantity distortion"]
+        ),
+        Theme(
+            "Inverted Sensation",
+            "inverted_sensation",
+            "Senses report opposite information",
+            "Pain feels pleasant. Light appears as darkness. Up is down to the body.",
+            ["Sensory inversion", "False signals", "Trust breakdown", "Confused perception"]
+        ),
+        Theme(
+            "Bureaucratic Nightmare",
+            "bureaucratic",
+            "Trapped in infinite procedures and paperwork",
+            "Forms in triplicate. Rules contradict. Everyone follows protocols that make no sense.",
+            ["Red tape", "Kafka-esque", "Procedure loops", "Administrative horror"]
         ),
         Theme(
             "Body Horror",
@@ -208,6 +344,69 @@ class ScenarioGenerator:
             "Gradual transformation into something else",
             "Slow change. Protagonist becoming other. Physical and mental transformation. New form emerging.",
             ["Gradual change", "New abilities", "Form shift", "Becoming other"]
+        ),
+        Theme(
+            "Sympathy Pain",
+            "sympathy",
+            "You feel what others feel, boundaries blur",
+            "Other people's sensations bleed through. Their pain is yours. Their thoughts intrude. Empathy becomes horror.",
+            ["Emotional bleeding", "Shared sensation", "Boundary loss", "Empathic invasion"]
+        ),
+        Theme(
+            "Scale Distortion",
+            "scale",
+            "Size and distance are negotiable",
+            "Things are too close or too far. Vast spaces in tiny rooms. Giants and insects trade places. Perspective is broken.",
+            ["Size shifting", "Distance warping", "Perspective horror", "Scale impossibility"]
+        ),
+        Theme(
+            "Fossil Consciousness",
+            "fossil",
+            "Experiencing ancient, preserved awareness",
+            "You're sediment. Compressed time. Millions of years condensed. Ancient thoughts preserved in stone.",
+            ["Deep time", "Geological consciousness", "Compressed existence", "Stratified memory"]
+        ),
+        Theme(
+            "Symbiotic Merge",
+            "symbiotic",
+            "Two beings forced to share existence",
+            "Something else lives inside you. You need each other. Boundaries dissolve. Whose thoughts are whose?",
+            ["Shared body", "Dual consciousness", "Forced partnership", "Identity fusion"]
+        ),
+        Theme(
+            "Aesthetic Corruption",
+            "aesthetic",
+            "Beauty becomes revolting, ugly becomes necessary",
+            "Gorgeous things cause nausea. Rot appears beautiful. Aesthetic values invert. You crave the disgusting.",
+            ["Beauty horror", "Value inversion", "Taste corruption", "Sensibility break"]
+        ),
+        Theme(
+            "Echo Chamber",
+            "echo",
+            "Everything repeats, layers, reinforces",
+            "Your words return changed. Actions echo infinitely. Each repetition amplifies. Feedback loop toward something.",
+            ["Repetition", "Amplification", "Feedback loops", "Iteration escalation"]
+        ),
+        Theme(
+            "Obligation Cascade",
+            "obligation",
+            "Debts and duties compound endlessly",
+            "Each action creates new obligations. Help someone, owe three more. Duties multiply exponentially.",
+            ["Debt spiral", "Duty multiplication", "Obligation trap", "Responsibility horror"]
+        ),
+        Theme(
+            "Trophy Collection",
+            "trophy",
+            "Something is collecting parts of you",
+            "Pieces go missing. Memories. Feelings. Body parts. Someone is building a collection. You're the source material.",
+            ["Part theft", "Collection horror", "Systematic removal", "Identity harvesting"]
+        ),
+        Theme(
+            "Tutorial Hell",
+            "tutorial",
+            "Trapped in endless instructions and learning",
+            "First learn to walk. Now learn to breathe. The tutorial never ends. Each lesson spawns ten more.",
+            ["Infinite learning", "Tutorial loop", "Instruction trap", "Training horror"]
         ),
     ]
     
@@ -373,6 +572,96 @@ PACING REQUIREMENTS:
     ╔═══════════════════════════════╗
     ║   LOADING... ERROR...        ║
     ║   [exit: not found]          ║
+    ╚═══════════════════════════════╝
+            """,
+            "sound_prison": """
+    ╔═══════════════════════════════╗
+    ║   SOUND PRISON               ║
+    ║   [silence: deadly]          ║
+    ╚═══════════════════════════════╝
+            """,
+            "infection": """
+    ╔═══════════════════════════════╗
+    ║   ⚠ INFECTION SPREADING ⚠    ║
+    ║   [you feel: better?]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "witnessed": """
+    ╔═══════════════════════════════╗
+    ║   👁 WITNESSED 👁             ║
+    ║   [recording: everything]    ║
+    ╚═══════════════════════════════╝
+            """,
+            "backwards_birth": """
+    ╔═══════════════════════════════╗
+    ║   ⟲ UN-BECOMING ⟲            ║
+    ║   [age: reversing]           ║
+    ╚═══════════════════════════════╝
+            """,
+            "shadow_debt": """
+    ╔═══════════════════════════════╗
+    ║   SHADOW DEBT                ║
+    ║   [collection: imminent]     ║
+    ╚═══════════════════════════════╝
+            """,
+            "word_virus": """
+    ╔═══════════════════════════════╗
+    ║   [REDACTED] VIRUS           ║
+    ║   [language: failing]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "recursive": """
+    ╔═══════════════════════════════╗
+    ║   ∞ RECURSION ∞              ║
+    ║   [self: multiplying]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "flesh_architecture": """
+    ╔═══════════════════════════════╗
+    ║   FLESH ARCHITECTURE         ║
+    ║   [building: digesting]      ║
+    ╚═══════════════════════════════╝
+            """,
+            "probability": """
+    ╔═══════════════════════════════╗
+    ║   ◊ PROBABILITY COLLAPSE ◊   ║
+    ║   [reality: splitting]       ║
+    ╚═══════════════════════════════╝
+            """,
+            "debt_collector": """
+    ╔═══════════════════════════════╗
+    ║   DEBT COLLECTOR             ║
+    ║   [payment: due NOW]         ║
+    ╚═══════════════════════════════╝
+            """,
+            "static_person": """
+    ╔═══════════════════════════════╗
+    ║   ▓▒░ STATIC PERSON ░▒▓      ║
+    ║   [signal: degrading]        ║
+    ╚═══════════════════════════════╝
+            """,
+            "audition": """
+    ╔═══════════════════════════════╗
+    ║   THE AUDITION               ║
+    ║   [your number: approaching] ║
+    ╚═══════════════════════════════╝
+            """,
+            "negative_space": """
+    ╔═══════════════════════════════╗
+    ║   NEGATIVE SPACE             ║
+    ║   [existence: between]       ║
+    ╚═══════════════════════════════╝
+            """,
+            "consensus": """
+    ╔═══════════════════════════════╗
+    ║   CONSENSUS REALITY          ║
+    ║   [observation: required]    ║
+    ╚═══════════════════════════════╝
+            """,
+            "ancestral": """
+    ╔═══════════════════════════════╗
+    ║   ANCESTRAL MEMORY           ║
+    ║   [past: bleeding through]   ║
     ╚═══════════════════════════════╝
             """,
         }
