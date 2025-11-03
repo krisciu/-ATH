@@ -16,15 +16,47 @@ from rich.columns import Columns
 class Renderer:
     """Handles all visual output using Rich library."""
     
+    # Dynamic color palettes for different moods
+    COLOR_PALETTES = {
+        'stable': ['white', 'bright_white', 'grey70'],
+        'unsettled': ['cyan', 'bright_cyan', 'blue', 'white'],
+        'disturbed': ['yellow', 'bright_yellow', 'orange1', 'gold1'],
+        'breaking': ['red', 'bright_red', 'orange_red1', 'dark_orange'],
+        'collapsed': ['magenta', 'bright_magenta', 'purple', 'violet', 'red'],
+        'horror': ['red', 'dark_red', 'red3', 'indian_red'],
+        'glitch': ['green', 'bright_green', 'cyan', 'magenta', 'yellow'],
+        'void': ['grey30', 'grey23', 'grey15', 'black'],
+    }
+    
     def __init__(self):
         """Initialize the renderer."""
         self.console = Console()
         self.typing_speed = 0.02  # Base typing speed
+        self.current_palette = 'stable'
     
     @staticmethod
     def escape_markup(text: str) -> str:
         """Escape Rich markup characters to prevent parsing errors."""
         return text.replace('[', '\\[').replace(']', '\\]')
+    
+    def get_dynamic_color(self, intensity: float = 0.0) -> str:
+        """Get a color based on current intensity."""
+        if intensity >= 0.8:
+            palette = self.COLOR_PALETTES['collapsed']
+        elif intensity >= 0.6:
+            palette = self.COLOR_PALETTES['breaking']
+        elif intensity >= 0.4:
+            palette = self.COLOR_PALETTES['disturbed']
+        elif intensity >= 0.2:
+            palette = self.COLOR_PALETTES['unsettled']
+        else:
+            palette = self.COLOR_PALETTES['stable']
+        
+        return random.choice(palette)
+    
+    def get_random_color_from_palette(self, palette_name: str) -> str:
+        """Get random color from a specific palette."""
+        return random.choice(self.COLOR_PALETTES.get(palette_name, ['white']))
     
     def clear(self):
         """Clear the screen."""
@@ -96,44 +128,41 @@ class Renderer:
         self.console.print()  # Newline after animation completes
     
     def show_narrative(self, narrative: str, interjection: Optional[str] = None, intensity: float = 0.0):
-        """Display narrative text with optional narrator interjection."""
+        """Display narrative text with optional narrator interjection - DYNAMIC COLORS."""
         # Adjust typing speed based on intensity
         speed = self.typing_speed * (1 + intensity * 0.5)
         
-        # Choose color based on intensity
-        if intensity > 0.8:
-            style = "bold red"
-        elif intensity > 0.5:
-            style = "yellow"
-        elif intensity > 0.2:
-            style = "dim white"
-        else:
-            style = "white"
+        # Get dynamic color based on intensity
+        color = self.get_dynamic_color(intensity)
+        style = f"bold {color}" if intensity > 0.6 else color
         
         # Type the narrative
         self.console.print()
         self.type_text(narrative, speed=speed, style=style)
         
-        # Add interjection if present
+        # Add interjection if present with varied colors
         if interjection:
             time.sleep(0.3)
-            self.console.print(f"\n  {interjection}", style="dim italic cyan")
+            interjection_color = self.get_random_color_from_palette('glitch' if intensity > 0.7 else 'unsettled')
+            self.console.print(f"\n  {interjection}", style=f"dim italic {interjection_color}")
         
         self.console.print()
     
     def show_choices(self, choices: List[str], intensity: float = 0.0):
-        """Display choice options."""
+        """Display choice options - DYNAMIC COLORS."""
         self.console.print()
         
-        # Create a table for choices
-        choice_style = "bold white" if intensity < 0.5 else "bold yellow"
-        
+        # Get dynamic colors for choices
         for i, choice in enumerate(choices, 1):
+            # Each choice gets a slightly different color
+            choice_color = self.get_dynamic_color(intensity)
+            number_color = self.get_random_color_from_palette('horror' if intensity > 0.7 else 'disturbed' if intensity > 0.4 else 'stable')
+            
             # Add visual corruption to choices at high intensity
             if intensity > 0.7 and random.random() < 0.3:
                 choice = self._corrupt_text(choice)
             
-            self.console.print(f"  [{choice_style}]{i}[/{choice_style}]. {choice}")
+            self.console.print(f"  [bold {number_color}]{i}[/]. [{choice_color}]{choice}[/]")
         
         self.console.print()
     
@@ -220,19 +249,24 @@ class Renderer:
         self.console.print(panel)
     
     def show_ascii_art(self, art: str, intensity: float = 0.0):
-        """Display ASCII art with potential corruption."""
-        if intensity > 0.6:
-            # Corrupt some lines
-            lines = art.split('\n')
-            corrupted_lines = []
-            for line in lines:
-                if random.random() < intensity * 0.3:
-                    line = self._corrupt_text(line)
-                corrupted_lines.append(line)
-            art = '\n'.join(corrupted_lines)
+        """Display ASCII art with potential corruption - DYNAMIC COLORS."""
+        lines = art.split('\n')
+        corrupted_lines = []
         
-        style = "cyan" if intensity < 0.5 else "yellow"
-        self.console.print(Align.center(art), style=style)
+        for line in lines:
+            # Corrupt some lines at high intensity
+            if intensity > 0.6 and random.random() < intensity * 0.3:
+                line = self._corrupt_text(line)
+            corrupted_lines.append(line)
+        
+        # Use dynamic colors for ASCII art
+        art_color = self.get_dynamic_color(intensity)
+        
+        # Occasionally use horror or glitch palette for extra creepiness
+        if random.random() < 0.3:
+            art_color = self.get_random_color_from_palette('horror' if intensity > 0.5 else 'glitch')
+        
+        self.console.print(Align.center('\n'.join(corrupted_lines)), style=f"bold {art_color}")
         self.console.print()
     
     def show_scattered_text(self, lines: List[str]):
