@@ -44,7 +44,7 @@ VISUAL_INTENSITY = {
 }
 
 # Model configuration
-DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
+DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 MAX_TOKENS = 800
 TEMPERATURE = 0.9  # Higher for more creative/unpredictable output
 
