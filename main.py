@@ -167,12 +167,19 @@ class Game:
                 # Add scenario constraints to context for AI
                 context['scenario_constraints'] = scenario_data.get('ongoing_constraints', '')
                 
-                # Check for rule mutations
+                # Check for rule mutations - DRAMATIC ANNOUNCEMENTS
                 mutation = self.mutations.check_mutation(context)
                 if mutation and mutation not in self.mutations_this_session:
                     self.mutations_this_session.append(mutation.key)
-                    self.renderer.show_mutation_announcement(mutation)
-                    time.sleep(1.5)
+                    
+                    # DRAMATIC mutation announcement with visual flair
+                    self.renderer.console.print("\n\n")
+                    self.renderer.console.print("━" * 60, style="bold red")
+                    self.renderer.console.print(f"[bold red]⚠ REALITY SHIFT DETECTED ⚠[/]", justify="center")
+                    self.renderer.console.print(f"[yellow]{mutation.announcement}[/]", justify="center")
+                    self.renderer.console.print("━" * 60, style="bold red")
+                    self.renderer.console.print(f"\n[dim italic]{mutation.description}[/]\n")
+                    time.sleep(2.5)  # Longer pause to emphasize the change
                 
                 # Handle special one-time mutation effects
                 if mutation:
@@ -180,8 +187,8 @@ class Game:
                     if special_msg:
                         # Escape any brackets in mutation messages
                         safe_msg = special_msg.replace('[', '\\[').replace(']', '\\]')
-                        self.renderer.console.print(safe_msg, style="yellow")
-                        time.sleep(1.0)
+                        self.renderer.console.print(f"\n[bold yellow]{safe_msg}[/]\n", justify="center")
+                        time.sleep(1.5)
                 
                 # Update systems
                 self.typography.set_intensity(visual_intensity)

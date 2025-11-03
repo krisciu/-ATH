@@ -108,19 +108,8 @@ class StoryEngine:
             self._modify_hidden_stat('courage', int(random.randint(0, 2) * early_game_multiplier))
             something_changed = True
         
-        # FORCE CHANGE even on "neutral" choices - no passive choices allowed (with early game protection)
-        if not something_changed:
-            # Neutral choice = gradual decay - REDUCED from -2/-1 to -1/0
-            self._modify_hidden_stat('sanity', int(random.randint(-1, 0) * early_game_multiplier))
-            self._modify_character_stat('health', int(random.randint(-5, -1) * early_game_multiplier))
-        
-        # Random sanity drain - REDUCED frequency from 50% to 30% and damage from -2/-1 to -1/0
-        if random.random() < 0.3:
-            self._modify_hidden_stat('sanity', int(random.randint(-1, 0) * early_game_multiplier))
-        
-        # Health modifications MORE FREQUENT - with early game protection
-        if random.random() < 0.25:  # was 0.15
-            self._modify_character_stat('health', int(random.randint(-20, -8) * early_game_multiplier))
+        # NO PASSIVE DECAY - stats only change from meaningful choices and AI consequences
+        # This gives players more agency and makes stat changes feel earned/deserved
     
     def _modify_hidden_stat(self, stat: str, change: int):
         """Modify a hidden stat (clamped 0-10)."""
@@ -322,13 +311,13 @@ class StoryEngine:
         return self.momentum_level
     
     def get_momentum_prompt_modifier(self) -> str:
-        """Add momentum-based urgency to AI prompts."""
+        """Add momentum-based urgency to AI prompts - SUBTLE, no telegraphing."""
         if self.must_end_soon:
-            return "\n\n⚠️ CRITICAL: Story MUST reach climax NOW. Build to ending. This cannot continue much longer."
+            return "\n\nRaise stakes significantly. Make choices matter more."
         elif self.momentum_level >= 10:
-            return "\n\nURGENT: Story is accelerating toward climax. Raise stakes dramatically."
+            return "\n\nIncrease tension and consequences."
         elif self.momentum_level >= 5:
-            return "\n\nBuilding momentum: Begin escalating toward climax."
+            return "\n\nBegin escalating stakes."
         return ""
     
     def detect_trap_choice(self, choice_text: str) -> bool:
