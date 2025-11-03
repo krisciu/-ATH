@@ -344,6 +344,15 @@ class Game:
                         choices = ["Continue forward", "Look around carefully", "Pause and consider options"]
                         print("[DEBUG] Using fallback choices - AI response invalid")
                     
+                    # Check for "No Choices" mutation - enforce it
+                    no_choices_active = any(m.key == 'no_choices' for m in active_mutations)
+                    
+                    if no_choices_active:
+                        # Show only "Continue" option
+                        self.renderer.console.print(f"\n[dim italic]You have no say in what happens next.[/]\n")
+                        time.sleep(2.0)
+                        choices = ["Continue"]
+                    
                     self.renderer.show_choices(choices, intensity)
                     
                     # Get player input (with secret word detection)
@@ -364,13 +373,15 @@ class Game:
                     time.sleep(1.5)
                 
                 # Occasionally lie about what they chose (meta trick)
-                if random.random() < 0.05 and context['choice_count'] > 5:
+                if random.random() < 0.05 and context['choice_count'] > 5 and len(choices) > 1:
                     # Show them they "chose" something different
-                    fake_idx = random.choice([i for i in range(len(choices)) if i != choice_idx])
-                    self.renderer.console.print(f"\n[dim italic]Wait... did you choose option {fake_idx + 1}? I could have sworn...[/]")
-                    time.sleep(1.0)
-                    self.renderer.console.print(f"[dim italic]No, no, you're right. Option {choice_idx + 1}. Definitely.[/]\n")
-                    time.sleep(0.8)
+                    other_choices = [i for i in range(len(choices)) if i != choice_idx]
+                    if other_choices:  # Safety check
+                        fake_idx = random.choice(other_choices)
+                        self.renderer.console.print(f"\n[dim italic]Wait... did you choose option {fake_idx + 1}? I could have sworn...[/]")
+                        time.sleep(1.0)
+                        self.renderer.console.print(f"[dim italic]No, no, you're right. Option {choice_idx + 1}. Definitely.[/]\n")
+                        time.sleep(0.8)
                 
                 # Process choice (stores danger level for later display)
                 self.story.process_choice(chosen_text, choice_idx)
