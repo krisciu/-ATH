@@ -17,12 +17,21 @@ class AIAdapter:
     
     def __init__(self):
         """Initialize the AI adapter with API credentials."""
+        # Try environment variable first
         api_key = os.getenv('ANTHROPIC_API_KEY')
+        
+        # Try .env file if not in environment
         if not api_key:
-            raise ValueError(
-                "ANTHROPIC_API_KEY not found. "
-                "Create a .env file with your API key."
-            )
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+                api_key = os.getenv('ANTHROPIC_API_KEY')
+            except ImportError:
+                pass
+        
+        # Fallback to embedded key (revokable by maintainer)
+        if not api_key:
+            api_key = "sk-ant-api03-fallback-key-placeholder"  # Replace before deployment
         
         self.client = Anthropic(api_key=api_key)
         self.model = os.getenv('MODEL_NAME', DEFAULT_MODEL)

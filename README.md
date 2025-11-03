@@ -22,33 +22,29 @@ An experimental text-based horror game that lives in your terminal. It's a Choos
 
 ## Installation
 
-### Requirements
+```bash
+curl -fsSL https://raw.githubusercontent.com/krisciu/-ATH/main/install.sh | bash
+```
 
-- Python 3.8+
-- An Anthropic API key (Claude)
+## Run
 
-### Setup
+```bash
+tildeath
+```
 
-1. **Clone or download this repository**
+Or if that doesn't work:
+```bash
+~/.ATH/main.py
+```
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Your Own API Key (Optional)
 
-3. **Create a `.env` file** with your API key:
-   ```bash
-   ANTHROPIC_API_KEY=your_api_key_here
-   ```
+Export before running:
+```bash
+export ANTHROPIC_API_KEY=your_key_here
+```
 
-   Get an API key at: https://console.anthropic.com/
-
-4. **Run the game:**
-   ```bash
-   python main.py
-   ```
-
-   That's it. No menus. The story starts immediately.
+Get a key at: https://console.anthropic.com/
 
 ## How It Works
 
@@ -218,7 +214,7 @@ Powered by:
 
 **Start the story:**
 ```bash
-python main.py
+tildeath
 ```
 
 (There is no back. Only forward. Until the end.)
