@@ -23,7 +23,7 @@ An experimental text-based horror game that lives in your terminal. It's a Choos
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/krisciu/-ATH/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/krisciu/tildeath/main/install.sh | bash
 ```
 
 ## Run

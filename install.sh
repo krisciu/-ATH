@@ -13,7 +13,7 @@ fi
 if [ -d "$HOME/.ATH" ]; then
     cd "$HOME/.ATH" && git pull
 else
-    git clone https://github.com/krisciu/-ATH.git "$HOME/.ATH"
+    git clone https://github.com/krisciu/tildeath.git "$HOME/.ATH"
 fi
 
 # Install dependencies
