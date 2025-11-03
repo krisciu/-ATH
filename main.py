@@ -365,9 +365,13 @@ class Game:
                     print(f"[DEBUG] Next scene has invalid choices: {next_scene.get('choices')}")
                     print(f"[DEBUG] Next scene narrative length: {len(next_scene.get('narrative', ''))}")
                 
-                # Occasional special visual moments
-                if intensity > 0.7 and random.choice([True, False, False]):
+                # Frequent special visual moments - INCREASED frequency
+                if intensity > 0.5 and random.random() < 0.4:  # 40% chance when unstable
                     self._trigger_special_moment(context)
+                
+                # Random visual glitch bars between sections
+                if random.random() < intensity * 0.3:
+                    self.renderer.console.print(f"\n{self.typography.create_glitch_bars()}\n", style="dim")
             
             # Save ghost memory on exit (with truth state)
             self.session.save_ghost_memory(
@@ -403,21 +407,76 @@ class Game:
             sys.exit(1)
     
     def _trigger_special_moment(self, context: Dict):
-        """Trigger special typographic moments."""
+        """Trigger special typographic moments - MASSIVELY EXPANDED."""
         import random
         
-        moment_types = ['mirror', 'falling', 'emphasis', 'whisper']
-        moment = random.choice(moment_types)
+        # Choose from many more effect types
+        effects = [
+            'wave', 'staircase', 'fragmented', 'layered', 'reversed',
+            'alternating', 'stack', 'brackets', 'double_vision', 'interference',
+            'countdown', 'justified_chaos', 'trailing_dots', 'box_frame',
+            'mirror', 'falling', 'emphasis', 'whisper'
+        ]
+        
+        effect = random.choice(effects)
         
         texts = [
             "you are being watched",
             "this isn't real",
             "turn back",
             "the walls remember",
-            "who are you?"
+            "who are you?",
+            "something is wrong",
+            "can you feel it",
+            "the narrator lies",
+            "you've been here before",
+            "this is not a game",
+            "wake up",
+            "they know",
+            "don't trust the choices",
+            "count the doors",
+            "remember your name",
         ]
         
-        self.renderer.show_special_moment(moment, random.choice(texts))
+        text = random.choice(texts)
+        
+        # Apply the chosen effect
+        if effect == 'wave':
+            result = self.typography.create_wave_text(text)
+        elif effect == 'staircase':
+            result = self.typography.create_staircase_text(text)
+        elif effect == 'fragmented':
+            result = self.typography.create_fragmented_text(text)
+        elif effect == 'layered':
+            result = self.typography.create_layered_text(text)
+        elif effect == 'reversed':
+            result = self.typography.create_reversed_sections(text)
+        elif effect == 'alternating':
+            result = self.typography.create_alternating_case(text)
+        elif effect == 'stack':
+            result = self.typography.create_word_stack(text)
+        elif effect == 'brackets':
+            result = self.typography.create_bracket_madness(text)
+        elif effect == 'double_vision':
+            result = self.typography.create_double_vision(text)
+        elif effect == 'interference':
+            result = self.typography.create_interference_pattern(text)
+        elif effect == 'countdown':
+            result = self.typography.create_countdown_text(text)
+        elif effect == 'justified_chaos':
+            result = self.typography.create_justified_chaos(text)
+        elif effect == 'trailing_dots':
+            result = self.typography.create_trailing_dots(text)
+        elif effect == 'box_frame':
+            result = self.typography.create_ascii_box_frame(text)
+        else:
+            # Fallback to original special moments
+            self.renderer.show_special_moment(effect, text)
+            return
+        
+        # Display the effect
+        self.renderer.console.print(f"\n{result}\n", style="dim italic yellow")
+        time.sleep(1.5)
 
 
 def main():

@@ -641,4 +641,195 @@ class TypographyEngine:
             "(your battery: LOW)",
         ]
         return random.choice(messages)
+    
+    # ===== NEW EXPANDED EFFECTS =====
+    
+    def create_wave_text(self, text: str) -> str:
+        """Create wave/sine effect with text."""
+        words = text.split()[:10]
+        lines = []
+        for i, word in enumerate(words):
+            # Sine wave pattern
+            offset = int(5 * (1 + __import__('math').sin(i * 0.8)))
+            lines.append(" " * offset + word)
+        return "\n".join(lines)
+    
+    def create_staircase_text(self, text: str, ascending: bool = True) -> str:
+        """Create staircase effect."""
+        words = text.split()[:8]
+        lines = []
+        for i, word in enumerate(words):
+            indent = i * 3 if ascending else (len(words) - i) * 3
+            lines.append(" " * indent + word)
+        return "\n".join(lines)
+    
+    def create_justified_chaos(self, text: str, width: int = 60) -> str:
+        """Justify text in chaotic ways."""
+        words = text.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            current_line.append(word)
+            if len(' '.join(current_line)) > width // 2:
+                # Randomly justify
+                line_text = ' '.join(current_line)
+                padding = width - len(line_text)
+                if padding > 0:
+                    if random.random() < 0.5:
+                        lines.append(" " * padding + line_text)  # Right
+                    else:
+                        lines.append(line_text + " " * padding)  # Left
+                else:
+                    lines.append(line_text)
+                current_line = []
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return "\n".join(lines)
+    
+    def create_fragmented_text(self, text: str) -> str:
+        """Break text into fragments with gaps."""
+        words = text.split()
+        fragments = []
+        for word in words:
+            if len(word) > 4 and random.random() < 0.4:
+                # Split word
+                mid = len(word) // 2
+                fragments.append(word[:mid] + "..." + word[mid:])
+            else:
+                fragments.append(word)
+        return ' '.join(fragments)
+    
+    def create_layered_text(self, text: str, layers: int = 3) -> str:
+        """Create overlapping layers of text."""
+        lines = []
+        words = text.split()[:6]
+        for i in range(layers):
+            offset = i * 2
+            layer_text = " " * offset + ' '.join(words[i::layers])
+            lines.append(layer_text)
+        return "\n".join(lines)
+    
+    def create_compressed_text(self, text: str) -> str:
+        """Compress text by removing spaces."""
+        words = text.split()
+        compressed = []
+        for i, word in enumerate(words):
+            if i % 2 == 0:
+                compressed.append(word)
+            else:
+                compressed.append(word.replace(' ', ''))
+        return ''.join(compressed)
+    
+    def create_expanded_text(self, text: str) -> str:
+        """Expand text with extra spaces."""
+        words = text.split()[:8]
+        expanded = []
+        for word in words:
+            expanded.append('  '.join(word))
+        return '\n'.join(expanded)
+    
+    def create_reversed_sections(self, text: str) -> str:
+        """Reverse random sections of text."""
+        words = text.split()
+        result = []
+        for i, word in enumerate(words):
+            if i % 3 == 0 and len(word) > 3:
+                result.append(word[::-1])  # Reverse
+            else:
+                result.append(word)
+        return ' '.join(result)
+    
+    def create_alternating_case(self, text: str) -> str:
+        """Alternate between upper and lower case."""
+        result = []
+        for i, char in enumerate(text):
+            if char.isalpha():
+                result.append(char.upper() if i % 2 == 0 else char.lower())
+            else:
+                result.append(char)
+        return ''.join(result)
+    
+    def create_word_stack(self, text: str) -> str:
+        """Stack words vertically."""
+        words = text.split()[:6]
+        return '\n'.join(f"    {word}" for word in words)
+    
+    def create_bracket_madness(self, text: str) -> str:
+        """Add excessive brackets."""
+        words = text.split()
+        result = []
+        for word in words:
+            if random.random() < 0.3:
+                brackets = random.choice(['[]', '()', '{}', '⟨⟩', '«»'])
+                result.append(f"{brackets[0]}{word}{brackets[1]}")
+            else:
+                result.append(word)
+        return ' '.join(result)
+    
+    def create_trailing_dots(self, text: str) -> str:
+        """Add trailing dots to words."""
+        words = text.split()
+        result = []
+        for word in words:
+            if random.random() < 0.4:
+                dots = '.' * random.randint(1, 5)
+                result.append(word + dots)
+            else:
+                result.append(word)
+        return ' '.join(result)
+    
+    def create_ascii_box_frame(self, text: str) -> str:
+        """Frame text in ASCII box."""
+        lines = text.split('\n') if '\n' in text else [text]
+        max_width = max(len(line) for line in lines)
+        
+        result = []
+        result.append("┌" + "─" * (max_width + 2) + "┐")
+        for line in lines:
+            result.append("│ " + line.ljust(max_width) + " │")
+        result.append("└" + "─" * (max_width + 2) + "┘")
+        
+        return '\n'.join(result)
+    
+    def create_double_vision(self, text: str) -> str:
+        """Create double vision effect."""
+        words = text.split()[:5]
+        lines = []
+        for word in words:
+            lines.append(word + "  " + word)
+        return '\n'.join(lines)
+    
+    def create_interference_pattern(self, text: str) -> str:
+        """Add interference/static between words."""
+        words = text.split()
+        static = ['█', '▓', '▒', '░', '▪', '▫', '●', '○']
+        result = []
+        for word in words:
+            result.append(word)
+            if random.random() < 0.5:
+                result.append(random.choice(static) * random.randint(1, 3))
+        return ' '.join(result)
+    
+    def create_countdown_text(self, text: str) -> str:
+        """Add countdown numbers."""
+        words = text.split()[:10]
+        result = []
+        for i, word in enumerate(words):
+            result.append(f"[{10-i}] {word}")
+        return '\n'.join(result)
+    
+    def create_glitch_bars(self) -> str:
+        """Create glitch bar separators."""
+        bars = [
+            "▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░",
+            "█▓▒░█▓▒░█▓▒░█▓▒░█▓▒░█▓▒░",
+            "░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█",
+            "═══════════════════════",
+            "━━━━━━━━━━━━━━━━━━━━━━━",
+            "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+        ]
+        return random.choice(bars)
 
