@@ -63,9 +63,9 @@ class StoryEngine:
         """Apply stat modifications based on choice content - with early game protection."""
         text_lower = choice_text.lower()
         
-        # Early game protection (first 5 choices) - prevent premature endings
+        # Early game protection (first 8 choices) - prevent premature endings
         early_game_multiplier = 1.0
-        if self.choice_count <= 5:
+        if self.choice_count <= 8:
             early_game_multiplier = 0.5  # Half damage/changes early on
         
         # Check for dangerous choices FIRST (consequences)
@@ -87,9 +87,9 @@ class StoryEngine:
             self._modify_character_stat('speed', int(random.randint(0, 2) * early_game_multiplier))
             something_changed = True
         
-        # Sanity modifications - ALWAYS AFFECTED (with early game protection)
+        # Sanity modifications - REDUCED from -3 to -2 max (with early game protection)
         if any(word in text_lower for word in ['look', 'examine', 'study', 'observe', 'stare']):
-            self._modify_hidden_stat('sanity', int(random.randint(-3, -1) * early_game_multiplier))
+            self._modify_hidden_stat('sanity', int(random.randint(-2, -1) * early_game_multiplier))
             self._modify_hidden_stat('curiosity', int(random.randint(2, 4) * early_game_multiplier))
             something_changed = True
         
@@ -110,13 +110,13 @@ class StoryEngine:
         
         # FORCE CHANGE even on "neutral" choices - no passive choices allowed (with early game protection)
         if not something_changed:
-            # Neutral choice = gradual decay
-            self._modify_hidden_stat('sanity', int(random.randint(-2, -1) * early_game_multiplier))
+            # Neutral choice = gradual decay - REDUCED from -2/-1 to -1/0
+            self._modify_hidden_stat('sanity', int(random.randint(-1, 0) * early_game_multiplier))
             self._modify_character_stat('health', int(random.randint(-5, -1) * early_game_multiplier))
         
-        # Random sanity drain MORE OFTEN (the world is unstable) - with early game protection
-        if random.random() < 0.5:  # was 0.3
-            self._modify_hidden_stat('sanity', int(random.randint(-2, -1) * early_game_multiplier))
+        # Random sanity drain - REDUCED frequency from 50% to 30% and damage from -2/-1 to -1/0
+        if random.random() < 0.3:
+            self._modify_hidden_stat('sanity', int(random.randint(-1, 0) * early_game_multiplier))
         
         # Health modifications MORE FREQUENT - with early game protection
         if random.random() < 0.25:  # was 0.15

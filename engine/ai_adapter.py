@@ -262,26 +262,22 @@ class AIAdapter:
         }
     
     def should_generate_art(self, context: Dict) -> bool:
-        """Check if art should be generated at this moment."""
+        """Check if art should be generated at this moment - REDUCED frequency."""
         choice_count = context['choice_count']
         char_stats = context['character_stats']
         hidden_stats = context['hidden_stats']
         revelation_level = context.get('revelation_level', 0)
         
-        # Milestone choices (every 5 choices)
-        if choice_count > 0 and choice_count % 5 == 0:
+        # Milestone choices (every 8 choices instead of 5)
+        if choice_count > 0 and choice_count % 8 == 0:
             return True
         
-        # Critical health (<30%)
-        if char_stats['health'] < 30:
+        # Critical sanity only (removed health trigger - too common)
+        if hidden_stats['sanity'] < 2:  # Changed from <3 to <2
             return True
         
-        # Critical sanity
-        if hidden_stats['sanity'] < 3:
-            return True
-        
-        # Revelation moments
-        if revelation_level >= 3 and choice_count > 15:
+        # High revelation moments only
+        if revelation_level >= 4 and choice_count > 15:  # Changed from >=3 to >=4
             return True
         
         return False

@@ -12,7 +12,7 @@ DEFAULT_CHARACTER_STATS = {
 # Hidden Stats (invisible narrative modifiers)
 DEFAULT_HIDDEN_STATS = {
     "courage": 5,
-    "sanity": 5,
+    "sanity": 8,  # Increased from 5 to prevent early game endings
     "curiosity": 5,
     "trust": 5,
 }

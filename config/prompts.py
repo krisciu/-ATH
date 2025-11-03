@@ -301,21 +301,19 @@ BAD examples (avoid vague blobs):
     elif stat_level < 5:
         corruption = "\nThe art should have minor imperfections - one or two lines slightly off."
     
-    return f"""Create DETAILED ASCII art of: {subject}
-Mood/tone: {mood}
+    return f"""Create SIMPLE, FAST ASCII art of: {subject}
+Mood: {mood}
 
-CRITICAL REQUIREMENTS:
-- Be SPECIFIC and DETAILED, not abstract blobs
-- Draw recognizable shapes with clear structure
-- Use box-drawing characters: ─ │ ╱ ╲ ╭ ╮ ╰ ╯ ┌ ┐ └ ┘ ╔ ╗ ╚ ╝ ═ ║
-- Maximum 12 lines tall, 20 characters wide
-- Include emojis if helpful: 👁️ 🖐️ ☠️ 👄
+REQUIREMENTS:
+- SIMPLE and MINIMAL (5-7 lines max, not 12)
+- FAST to generate - use basic shapes
+- Use box-drawing: ─ │ ╱ ╲ ┌ ┐ └ ┘ or emojis: 👁️ ☠️ 👄
+- Maximum 7 lines tall, 15 characters wide
+- Be recognizable but don't overdetail
 
-{examples}
+{specific_hint}{corruption}
 
-SPECIFIC GUIDANCE: {specific_hint}{corruption}
-
-Output ONLY the ASCII art, no explanations or markdown blocks."""
+Output ONLY the ASCII art, no explanations."""
 
 def get_ending_generation_prompt(ending, context: Dict) -> str:
     """Generate prompt for AI to create ending narrative."""

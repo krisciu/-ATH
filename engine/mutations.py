@@ -348,18 +348,18 @@ class MutationManager:
             self.cooldown -= 1
             return None
         
-        # Check for guaranteed mutations at specific choice counts
+        # Check for guaranteed mutations at specific choice counts - EARLIER triggers
         choice_count = context.get('choice_count', 0)
-        guaranteed_thresholds = [7, 15, 23]
+        guaranteed_thresholds = [5, 10, 15]  # Changed from [7, 15, 23]
         
         if choice_count in guaranteed_thresholds:
             mutation = self._select_mutation(context, guaranteed=True)
             self._activate_mutation(mutation)
             return mutation
         
-        # Random chance based on instability
+        # Random chance based on instability - INCREASED from 5% to 15% base
         instability = context.get('instability_level', 0)
-        base_chance = 0.05 + (instability * 0.02)
+        base_chance = 0.15 + (instability * 0.05)  # Changed from 0.05 + (instability * 0.02)
         
         if random.random() < base_chance:
             mutation = self._select_mutation(context)
@@ -399,8 +399,8 @@ class MutationManager:
         self.active_mutation = mutation
         self.duration_remaining = mutation.duration
         
-        # Set cooldown (3-6 choices before next mutation can occur)
-        self.cooldown = random.randint(3, 6)
+        # Set cooldown (2-4 choices before next mutation can occur) - REDUCED from 3-6
+        self.cooldown = random.randint(2, 4)
     
     def get_state_dict(self) -> Dict:
         """Get mutation state for saving."""

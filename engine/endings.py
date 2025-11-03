@@ -243,8 +243,8 @@ class EndingsManager:
         revelation_level = context.get('revelation_level', 0)
         session_count = context.get('session_count', 0)
         
-        # MINIMUM THRESHOLD: Don't end before choice 5 (give players a chance to play)
-        if choice_count < 5:
+        # MINIMUM THRESHOLD: Don't end before choice 8 (give players a chance to play)
+        if choice_count < 8:
             return None
         
         # Priority 1: Instant death traps (handled separately in story_engine)
@@ -284,8 +284,8 @@ class EndingsManager:
         if choice_count >= 15 and random.random() < 0.20:  # 20% chance (was 15%)
             return self._pick_cosmic_ending(context)
         
-        # Priority 9: Forced climax at 18+ choices (30% chance) - NEW for faster pacing
-        if choice_count >= 18 and random.random() < 0.30:
+        # Priority 9: Forced climax at 18+ choices (15% chance) - REDUCED from 30% for longer games
+        if choice_count >= 18 and random.random() < 0.15:
             return self._pick_climax_ending(context)
         
         return None
