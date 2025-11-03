@@ -33,6 +33,7 @@ class Renderer:
         self.console = Console()
         self.typing_speed = 0.02  # Base typing speed
         self.current_palette = 'stable'
+        self.interrupt_count = 0  # Track Ctrl+C attempts across entire session
     
     @staticmethod
     def escape_markup(text: str) -> str:
@@ -168,8 +169,6 @@ class Renderer:
     
     def get_choice_input(self, num_choices: int, secret_check_callback=None) -> int:
         """Get player's choice input (with optional secret word detection)."""
-        interrupt_count = 0
-        
         # Very rarely, pretend someone else is typing
         if random.random() < 0.03:  # 3% chance
             self.console.print("[bold green]>[/] ", end="")
@@ -207,10 +206,11 @@ class Renderer:
             except ValueError:
                 self.console.print("[red]Please enter a valid number[/]")
             except KeyboardInterrupt:
-                interrupt_count += 1
-                if interrupt_count == 1:
+                self.interrupt_count += 1
+                if self.interrupt_count == 1:
                     self.console.print("\n[dim]Cannot escape that easily...[/]")
-                elif interrupt_count == 2:
+                    time.sleep(0.5)
+                elif self.interrupt_count == 2:
                     # Fake exit - make it look like the program closed
                     self.console.clear()
                     time.sleep(0.8)
@@ -218,9 +218,12 @@ class Renderer:
                     self.console.print("                    :)", style="bold white")
                     time.sleep(1.2)
                     self.console.print("\n[dim]Did you really think it would be that easy?[/]")
+                    time.sleep(1.0)
+                    self.console.print("[dim]Try again if you really want to leave...[/]\n")
                     time.sleep(0.5)
                 else:
                     self.console.print("\n[dim]Fine. The story releases you.[/]")
+                    time.sleep(0.5)
                     raise  # Let it propagate to main handler
             except EOFError:
                 return 0  # Default to first choice if EOF

@@ -435,7 +435,9 @@ class Game:
             self.renderer.console.print("[dim](it always is)[/]\n")
         
         except KeyboardInterrupt:
-            self.renderer.console.print("\n\n[dim]Interrupted. The story fragments disperse.[/]")
+            # KeyboardInterrupt should be handled by renderer's three-strike system
+            # If we get here, user really wants to quit (third Ctrl+C)
+            self.renderer.console.print("\n\n[dim]The story releases you.[/]")
             # Still save ghost memory
             self.session.save_ghost_memory(
                 self.story.choice_history,
