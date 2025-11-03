@@ -1,6 +1,6 @@
 """Prompt engineering templates for AI generation."""
 
-from typing import Dict
+from typing import Dict, List
 
 
 def get_system_prompt():
@@ -134,6 +134,9 @@ def get_scene_generation_prompt(context):
     # Variety enforcement
     variety_hint = context.get('variety_hint', '')
     
+    # Mutation context (CRITICAL - changes interaction model)
+    mutation_context = context.get('mutation_context', '')
+    
     # Build event progression section
     event_section = ""
     if event_urgency:
@@ -166,6 +169,8 @@ STYLE INSTRUCTIONS: {style_instructions}{revelation_hint}
 {momentum_prompt}
 
 {variety_hint}
+
+{mutation_context}
 
 PROGRESSION REQUIREMENTS:
 - Every 2-3 choices: Major event must occur (chase sequence, transformation, discovery, confrontation)
@@ -404,6 +409,88 @@ LENGTH GUIDANCE:
 Write ONLY the ending narrative, no meta-commentary."""
     
     return prompt
+
+def get_mutation_prompt_context(active_mutations: List) -> str:
+    """Generate AI prompt context for active mutations."""
+    if not active_mutations:
+        return ""
+    
+    lines = ["\n═══ ACTIVE MUTATIONS ═══"]
+    lines.append("CRITICAL: The game's interaction model has changed!")
+    lines.append("")
+    
+    for mutation in active_mutations:
+        lines.append(f"MUTATION: {mutation.name}")
+        lines.append(f"Effect: {mutation.description}")
+        lines.append(f"Narrative integration: {mutation.narrative_trigger}")
+        lines.append("")
+        
+        # Special instructions based on mutation type
+        if mutation.requires_special_input:
+            if mutation.key in ['open_dialogue', 'confession_booth', 'reality_argument', 'name_horror']:
+                lines.append("⚠ FREE-TEXT MODE:")
+                lines.append("- End narrative with a question or prompt")
+                lines.append("- Do NOT provide numbered choices")
+                lines.append("- Player will type their response")
+                lines.append("- React to whatever they say")
+            
+            elif mutation.key in ['cipher_lock', 'word_association', 'memory_test']:
+                lines.append("⚠ PUZZLE MODE:")
+                lines.append("- Include a puzzle in the narrative")
+                lines.append("- Make it solvable but not trivial")
+                lines.append("- Do NOT provide numbered choices")
+                lines.append("- Player will enter their answer")
+            
+            elif mutation.key == 'text_parser':
+                lines.append("⚠ TEXT PARSER MODE:")
+                lines.append("- Describe the scene in detail")
+                lines.append("- Do NOT provide numbered choices")
+                lines.append("- Player will use commands like LOOK, TAKE, GO")
+            
+            elif mutation.key == 'reverse_narration':
+                lines.append("⚠ REVERSE NARRATION MODE:")
+                lines.append("- Set up a situation")
+                lines.append("- Ask player to describe what happens next")
+                lines.append("- Do NOT provide numbered choices")
+                lines.append("- React to their narration")
+            
+            elif mutation.key == 'fill_blank':
+                lines.append("⚠ FILL-IN-THE-BLANK MODE:")
+                lines.append("- Write narrative with _____ gaps")
+                lines.append("- Make gaps meaningful (actions, feelings, objects)")
+                lines.append("- Do NOT provide numbered choices")
+            
+            elif mutation.key == 'time_pressure':
+                lines.append("⚠ TIME PRESSURE MODE:")
+                lines.append("- Provide choices as normal")
+                lines.append("- But emphasize urgency in narrative")
+                lines.append("- Player has 10 seconds to choose")
+            
+            elif mutation.key == 'coordinate_input':
+                lines.append("⚠ COORDINATE INPUT MODE:")
+                lines.append("- Describe an ASCII art scene")
+                lines.append("- Player will point to coordinates")
+                lines.append("- Different areas have different effects")
+            
+            elif mutation.key == 'debug_mode':
+                lines.append("⚠ DEBUG MODE:")
+                lines.append("- Player sees fake debug console")
+                lines.append("- Weave this into narrative")
+                lines.append("- They can 'modify' variables")
+            
+            elif mutation.key == 'code_editor':
+                lines.append("⚠ CODE EDITOR MODE:")
+                lines.append("- Player sees story as 'source code'")
+                lines.append("- They can try to 'edit' it")
+                lines.append("- Their edits may or may not work")
+        
+        lines.append("")
+    
+    lines.append("IMPORTANT: Weave mutations naturally into narrative!")
+    lines.append("Don't announce them explicitly - let player discover through gameplay.")
+    lines.append("═══════════════════════\n")
+    
+    return "\n".join(lines)
 
 def get_opening_scene_prompt(scenario_data=None):
     """

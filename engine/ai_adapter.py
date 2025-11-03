@@ -176,6 +176,64 @@ class AIAdapter:
                 "error": True
             }
     
+    def generate_free_text_response(self, user_text: str, context: Dict) -> Dict[str, any]:
+        """Generate AI response to free-text player input."""
+        try:
+            # Build prompt for free-text response
+            prompt = f"""CONTEXT: {context.get('recent_narrative', '')}
+
+PLAYER'S RESPONSE: "{user_text}"
+
+React to what the player said. Continue the story based on their input.
+
+Format:
+NARRATIVE: [Your reaction and what happens next, 3-6 sentences]
+CONSEQUENCES:
+health: [change]
+sanity: [change]
+courage: [change]
+CHOICES:
+1. [choice]
+2. [choice]
+3. [choice - optional]
+
+Be creative. React authentically to their words. Make their input matter."""
+            
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=MAX_TOKENS,
+                temperature=TEMPERATURE,
+                system=self.system_prompt,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            
+            content = response.content[0].text
+            
+            # Update conversation history
+            self.conversation_history.append({
+                "role": "user",
+                "content": f"Player said: {user_text}"
+            })
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": content
+            })
+            
+            if len(self.conversation_history) > 12:
+                self.conversation_history = self.conversation_history[-12:]
+            
+            return self._parse_response(content)
+            
+        except Exception as e:
+            return {
+                "narrative": f"Your words echo in the void. ({str(e)[:30]}...)",
+                "choices": ["Continue", "Try again", "Give up"],
+                "error": True
+            }
+    
     def generate_ascii_art(self, subject: str, mood: str, sanity_level: int) -> str:
         """Generate ASCII art for visual moments."""
         try:

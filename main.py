@@ -26,8 +26,9 @@ from engine.truth_tracker import TruthTracker
 from engine.loading_effects import ThematicLoader
 from engine.endings import EndingsManager
 from engine.scenario_generator import ScenarioGenerator
-from engine.mutations import MutationManager, apply_mutation_to_choices, apply_mutation_to_narrative, handle_special_mutations
-from config.prompts import get_revelation_modifiers
+from engine.mutations import MutationManager
+from engine.game_modes import GameMode, GameModeHandler
+from config.prompts import get_revelation_modifiers, get_mutation_prompt_context
 
 
 class Game:
@@ -47,6 +48,7 @@ class Game:
             self.endings = EndingsManager()
             self.scenario_gen = ScenarioGenerator(self.session.ghost_memory)
             self.mutations = MutationManager()
+            self.game_mode_handler = GameModeHandler()
             
             # Track mutations for ghost memory
             self.mutations_this_session = []
@@ -167,28 +169,23 @@ class Game:
                 # Add scenario constraints to context for AI
                 context['scenario_constraints'] = scenario_data.get('ongoing_constraints', '')
                 
-                # Check for rule mutations - DRAMATIC ANNOUNCEMENTS
-                mutation = self.mutations.check_mutation(context)
-                if mutation and mutation not in self.mutations_this_session:
-                    self.mutations_this_session.append(mutation.key)
-                    
-                    # DRAMATIC mutation announcement with visual flair
-                    self.renderer.console.print("\n\n")
-                    self.renderer.console.print("━" * 60, style="bold red")
-                    self.renderer.console.print(f"[bold red]⚠ REALITY SHIFT DETECTED ⚠[/]", justify="center")
-                    self.renderer.console.print(f"[yellow]{mutation.announcement}[/]", justify="center")
-                    self.renderer.console.print("━" * 60, style="bold red")
-                    self.renderer.console.print(f"\n[dim italic]{mutation.description}[/]\n")
-                    time.sleep(2.5)  # Longer pause to emphasize the change
+                # Check for rule mutations - SUBTLE INTEGRATION
+                active_mutations = self.mutations.check_mutation(context)
                 
-                # Handle special one-time mutation effects
-                if mutation:
-                    special_msg = handle_special_mutations(mutation, context, self.renderer, self.story)
-                    if special_msg:
-                        # Escape any brackets in mutation messages
-                        safe_msg = special_msg.replace('[', '\\[').replace(']', '\\]')
-                        self.renderer.console.print(f"\n[bold yellow]{safe_msg}[/]\n", justify="center")
-                        time.sleep(1.5)
+                # Track new mutations
+                for mutation in active_mutations:
+                    if mutation.key not in self.mutations_this_session:
+                        self.mutations_this_session.append(mutation.key)
+                        # Subtle visual cue - no explicit announcement
+                        self.renderer.console.print("\n[dim italic cyan][something shifts][/]\n")
+                        time.sleep(0.8)
+                
+                # Add mutation context to AI prompts
+                if active_mutations:
+                    mutation_prompt = get_mutation_prompt_context(active_mutations)
+                    context['mutation_context'] = mutation_prompt
+                else:
+                    context['mutation_context'] = ''
                 
                 # Update systems
                 self.typography.set_intensity(visual_intensity)
@@ -217,14 +214,9 @@ class Game:
                 # Track horror concepts used for variety
                 self.story.detect_horror_concepts(narrative)
                 
-                # Apply mutation to narrative
-                if mutation:
-                    narrative = apply_mutation_to_narrative(mutation, narrative, context, self.renderer)
-                
-                # Apply typography effects (unless mutation overrides)
-                if mutation and mutation.key not in ['no_narrative', 'format_shift', 'format_corruption']:
-                    narrative = self.typography.apply_effects(narrative)
-                    narrative = self.typography.process_narrator_corrections(narrative)
+                # Apply typography effects (mutations are now in narrative)
+                narrative = self.typography.apply_effects(narrative)
+                narrative = self.typography.process_narrator_corrections(narrative)
                 
                 # Add narrator mood
                 prefix, suffix = self.narrator.process_narrative_mood(
@@ -248,17 +240,14 @@ class Game:
                 # Character stats are hidden - used only for narrative generation
                 # self.renderer.show_character_stats(context['character_stats'])
                 
-                # Show narrative with effects (unless no_narrative mutation)
-                if mutation and mutation.key == 'no_narrative':
-                    pass  # Skip narrative display
-                else:
-                    self.renderer.show_narrative(narrative, interjection, intensity)
-                    
-                    # NOW show consequence feedback AFTER narrative (so damage makes narrative sense)
-                    consequence_feedback = self.story.get_consequence_feedback(self.story.last_danger_level)
-                    if consequence_feedback:
-                        self.renderer.console.print(f"\n[dim red]{consequence_feedback}[/]")
-                        time.sleep(0.8)
+                # Show narrative (mutations integrated naturally)
+                self.renderer.show_narrative(narrative, interjection, intensity)
+                
+                # NOW show consequence feedback AFTER narrative (so damage makes narrative sense)
+                consequence_feedback = self.story.get_consequence_feedback(self.story.last_danger_level)
+                if consequence_feedback:
+                    self.renderer.console.print(f"\n[dim red]{consequence_feedback}[/]")
+                    time.sleep(0.8)
                 
                 # Occasional status comment from narrator
                 status_comment = self.narrator.get_status_comment(
@@ -269,29 +258,81 @@ class Game:
                 if status_comment:
                     self.renderer.show_status_comment(status_comment)
                 
-                # Show choices (always use opening which contains current AI response)
-                choices = opening.get('choices', [])
-                if not choices or len(choices) < 2:
-                    # Fallback to meaningful choices if AI didn't provide good ones
-                    choices = [
-                        "Continue forward",
-                        "Look around carefully", 
-                        "Pause and consider options"
-                    ]
-                    print("[DEBUG] Using fallback choices - AI response invalid")
+                # Determine game mode based on active mutations
+                current_mode = GameMode.STANDARD
+                special_input_mutation = None
                 
-                # Apply mutations to choices
-                skip_input = False
-                if mutation:
-                    choices, skip_input = apply_mutation_to_choices(mutation, choices, self.renderer)
+                for mutation in active_mutations:
+                    if mutation.requires_special_input:
+                        current_mode = self.game_mode_handler.get_mode_for_mutation(mutation.key)
+                        special_input_mutation = mutation
+                        break  # Use first special input mutation
                 
-                # Handle auto-continue mutations (no_choices)
-                if skip_input:
-                    self.renderer.console.print("\n[dim cyan][AUTO-CONTINUING...][/]\n")
-                    time.sleep(1.5)
-                    chosen_text = "continue"
+                # Route to appropriate input handler
+                if current_mode == GameMode.FREE_TEXT:
+                    # Free-text input mode
+                    prompt = "What do you say?" if special_input_mutation.key == 'open_dialogue' else "What do you do?"
+                    user_input = self.renderer.get_free_text_input(prompt)
+                    
+                    # Generate AI response to free text
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                        next_scene = self.ai.generate_free_text_response(user_input, context)
+                    
+                    chosen_text = f"[said: {user_input}]"
                     choice_idx = 0
+                
+                elif current_mode == GameMode.WORD_PUZZLE:
+                    # Puzzle mode
+                    puzzle = self.game_mode_handler.generate_puzzle('cipher')
+                    answer = self.renderer.get_word_puzzle_input(puzzle['display'], puzzle.get('hint', ''))
+                    
+                    # Check answer and continue
+                    chosen_text = f"[answered: {answer}]"
+                    choice_idx = 0
+                    
+                    # Generate next scene
+                    context['puzzle_answer'] = answer
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                        next_scene = self.ai.generate_scene(context)
+                
+                elif current_mode == GameMode.TEXT_PARSER:
+                    # Text parser mode
+                    command = self.renderer.get_text_parser_input()
+                    parsed = self.game_mode_handler.process_text_parser_command(command, context)
+                    
+                    chosen_text = parsed['formatted']
+                    choice_idx = 0
+                    
+                    # Generate next scene
+                    context['parser_command'] = parsed
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                        next_scene = self.ai.generate_scene(context)
+                
+                elif current_mode == GameMode.TIME_PRESSURE:
+                    # Timed choice mode
+                    choices = opening.get('choices', ["Act quickly", "Hesitate", "Panic"])
+                    choice_idx = self.renderer.get_timed_choice_input(choices, timeout=10)
+                    chosen_text = choices[choice_idx]
+                
+                elif current_mode == GameMode.COORDINATE_INPUT:
+                    # Coordinate input mode
+                    art = self.ai.generate_ascii_art("the space before you", "mysterious", context['hidden_stats']['sanity'])
+                    coords = self.renderer.get_coordinate_input(art, "Where do you point?")
+                    
+                    chosen_text = f"[pointed to {coords[0]},{coords[1]}]"
+                    choice_idx = 0
+                    
+                    context['coordinates'] = coords
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                        next_scene = self.ai.generate_scene(context)
+                
                 else:
+                    # STANDARD mode - normal choices
+                    choices = opening.get('choices', [])
+                    if not choices or len(choices) < 2:
+                        choices = ["Continue forward", "Look around carefully", "Pause and consider options"]
+                        print("[DEBUG] Using fallback choices - AI response invalid")
+                    
                     self.renderer.show_choices(choices, intensity)
                     
                     # Get player input (with secret word detection)
@@ -302,15 +343,8 @@ class Game:
                             context['choice_count']
                         )
                     
-                    # Handle forced_random mutation
-                    if mutation and mutation.key == 'forced_random':
-                        choice_idx = random.randint(0, len(choices) - 1)
-                        chosen_text = choices[choice_idx]
-                        self.renderer.console.print(f"\n[dim yellow]The narrator selects option {choice_idx + 1} for you.[/]\n")
-                        time.sleep(1.5)
-                    else:
-                        choice_idx = self.renderer.get_choice_input(len(choices), secret_check)
-                        chosen_text = choices[choice_idx]
+                    choice_idx = self.renderer.get_choice_input(len(choices), secret_check)
+                    chosen_text = choices[choice_idx]
                 
                 # Check for choice patterns
                 pattern_response = self.truth.detect_choice_pattern(choice_idx + 1)
@@ -337,15 +371,17 @@ class Game:
                     self.renderer.console.print(f"\n[bold red]That was... unwise.[/]")
                     time.sleep(1.2)
                 
-                # Generate next scene with revelation context (with continuous animation)
-                current_context = self.story.get_context()
-                current_context['revelation_level'] = self.truth.revelation_level
-                revelation_mods = get_revelation_modifiers(self.truth.revelation_level, breadcrumb_active)
-                current_context['revelation_context'] = revelation_mods
+                # Generate next scene (if not already generated by special input mode)
+                if current_mode == GameMode.STANDARD or current_mode == GameMode.TIME_PRESSURE:
+                    current_context = self.story.get_context()
+                    current_context['revelation_level'] = self.truth.revelation_level
+                    revelation_mods = get_revelation_modifiers(self.truth.revelation_level, breadcrumb_active)
+                    current_context['revelation_context'] = revelation_mods
+                    
+                    with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
+                        next_scene = self.ai.generate_scene(current_context)
                 
-                with self.loader.start(revelation_level=self.truth.revelation_level, choice_count=context['choice_count']):
-                    next_scene = self.ai.generate_scene(current_context)
-                
+                # next_scene already generated for special modes
                 if next_scene.get('error'):
                     self.renderer.show_error_glitch(next_scene['narrative'])
                 

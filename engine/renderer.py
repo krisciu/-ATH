@@ -225,6 +225,129 @@ class Renderer:
             except EOFError:
                 return 0  # Default to first choice if EOF
     
+    def get_free_text_input(self, prompt: str = "What do you say?") -> str:
+        """Get free-form text input from player."""
+        self.console.print(f"\n[bold yellow]{prompt}[/]")
+        self.console.print("[dim](Type your response, press Enter when done)[/]\n")
+        
+        try:
+            response = self.console.input("[bold green]>[/] ")
+            return response.strip()
+        except (KeyboardInterrupt, EOFError):
+            return "[silence]"
+    
+    def get_timed_choice_input(self, choices: List[str], timeout: int = 10) -> int:
+        """Get choice input with countdown timer."""
+        import threading
+        from rich.live import Live
+        from rich.text import Text
+        
+        result = {'choice': None, 'timed_out': False}
+        
+        def countdown_display():
+            """Display countdown."""
+            for remaining in range(timeout, 0, -1):
+                if result['choice'] is not None:
+                    break
+                time.sleep(1)
+            result['timed_out'] = True
+        
+        # Start countdown in background
+        timer_thread = threading.Thread(target=countdown_display, daemon=True)
+        timer_thread.start()
+        
+        # Show choices with timer
+        self.console.print()
+        for i, choice in enumerate(choices, 1):
+            self.console.print(f"  [bold yellow]{i}[/]. {choice}")
+        
+        self.console.print(f"\n[bold red]⏰ You have {timeout} seconds[/]\n")
+        
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                choice = self.console.input(f"[bold green]>[/] ")
+                choice_num = int(choice)
+                if 1 <= choice_num <= len(choices):
+                    result['choice'] = choice_num - 1
+                    return result['choice']
+            except (ValueError, KeyboardInterrupt):
+                pass
+            
+            if result['timed_out']:
+                break
+        
+        # Timeout - return random choice
+        self.console.print("\n[bold red]⏰ TIME'S UP[/]")
+        time.sleep(0.5)
+        default = random.randint(0, len(choices) - 1)
+        self.console.print(f"[dim]The narrator chooses for you: {choices[default]}[/]")
+        time.sleep(1)
+        return default
+    
+    def get_coordinate_input(self, art: str, prompt: str = "Enter coordinates") -> tuple[int, int]:
+        """Get coordinate input for ASCII art interaction."""
+        self.console.print(f"\n{art}\n", style="cyan")
+        self.console.print(f"[bold yellow]{prompt} (format: x,y)[/]")
+        self.console.print("[dim](e.g., 5,3 for column 5, row 3)[/]\n")
+        
+        while True:
+            try:
+                coord_input = self.console.input("[bold green]>[/] ")
+                parts = coord_input.strip().split(',')
+                if len(parts) == 2:
+                    x, y = int(parts[0]), int(parts[1])
+                    if 0 <= x <= 20 and 0 <= y <= 20:
+                        return (x, y)
+                    self.console.print("[red]Coordinates must be 0-20[/]")
+                else:
+                    self.console.print("[red]Format: x,y (e.g., 5,3)[/]")
+            except ValueError:
+                self.console.print("[red]Invalid coordinates[/]")
+            except (KeyboardInterrupt, EOFError):
+                return (0, 0)  # Default
+    
+    def get_word_puzzle_input(self, puzzle_display: str, hint: str = "") -> str:
+        """Get input for word puzzle."""
+        self.console.print(f"\n[bold yellow]PUZZLE:[/]")
+        self.console.print(f"{puzzle_display}\n")
+        if hint:
+            self.console.print(f"[dim]Hint: {hint}[/]\n")
+        
+        try:
+            answer = self.console.input("[bold green]Answer>[/] ")
+            return answer.strip()
+        except (KeyboardInterrupt, EOFError):
+            return ""
+    
+    def get_fill_blank_input(self, narrative_with_blanks: str) -> List[str]:
+        """Get fill-in-the-blank input."""
+        self.console.print(f"\n{narrative_with_blanks}\n")
+        self.console.print("[bold yellow]Fill in the blanks:[/]\n")
+        
+        # Count blanks
+        blank_count = narrative_with_blanks.count('_____')
+        
+        answers = []
+        for i in range(blank_count):
+            try:
+                answer = self.console.input(f"[bold green]Blank {i+1}>[/] ")
+                answers.append(answer.strip())
+            except (KeyboardInterrupt, EOFError):
+                answers.append("[...]")
+        
+        return answers
+    
+    def get_text_parser_input(self) -> str:
+        """Get old-school text parser command."""
+        self.console.print("\n[dim]Enter command (e.g., LOOK AROUND, TAKE ITEM, GO NORTH)[/]")
+        
+        try:
+            command = self.console.input("[bold green]>[/] ")
+            return command.strip()
+        except (KeyboardInterrupt, EOFError):
+            return "WAIT"
+    
     def show_character_stats(self, stats: dict, visible: bool = False):
         """Display character stats panel (hidden by default for ~ATH)."""
         # Stats are now hidden - used only for narrative generation
