@@ -41,6 +41,14 @@ CONSEQUENCES AND STAKES:
 - After dangerous choices, describe injuries, exhaustion, or psychological trauma
 - Build toward endings - nothing lasts forever
 
+CONSEQUENCE BALANCING (CRITICAL):
+- Health changes: -5 to -15 for dangerous choices (NOT -30!)
+- Sanity changes: -1 to -2 per risky choice (NOT -3!)
+- Include SOME positive choices that restore small amounts (+5 health, +1 sanity)
+- Not EVERY choice should damage the player
+- Balance risk vs reward: 2-3 risky choices, 1-2 safer/recovery choices
+- Make consequences proportional to the risk described in the narrative
+
 YOUR OUTPUT FORMAT:
 Generate ONLY the narrative text and 2-5 choice options.
 
@@ -176,6 +184,19 @@ PROGRESSION REQUIREMENTS:
 - Every 2-3 choices: Major event must occur (chase sequence, transformation, discovery, confrontation)
 - AVOID: Vague atmosphere, "you sense something", unclear spaces, wandering
 - REQUIRE: Specific actions, visible changes, tangible threats, concrete events{event_section}
+
+CHOICE VARIETY (CRITICAL FOR BALANCE):
+- Include at least ONE choice that could be positive/neutral (recovery, safety, or information)
+- Not ALL choices should lead to damage - mix risk and reward
+- Balance: 2-3 risky choices, 1-2 safer/recovery choices
+- Some choices should offer recovery, safety, or information gathering
+- Make consequences proportional to the risk taken
+
+EXAMPLE GOOD CHOICE SET:
+1. Investigate the noise (risky, potential -10 health)
+2. Hide and wait (safe, -2 sanity from fear)
+3. Look for another exit (neutral, might find escape)
+4. Rest for a moment (recovery, +5 health, +1 sanity)
 
 CHOICE DESIGN (Classic CYOA):
 - Occasionally (20% chance) include ONE obviously bad choice that will lead to immediate consequences

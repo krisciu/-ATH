@@ -372,7 +372,7 @@ class Game:
                     fake_idx = random.choice([i for i in range(len(choices)) if i != choice_idx])
                     self.renderer.console.print(f"\n[dim italic]Wait... did you choose option {fake_idx + 1}? I could have sworn...[/]")
                     time.sleep(1.0)
-                    self.renderer.console.print("[dim italic]No, no, you're right. Option {choice_idx + 1}. Definitely.[/]\n")
+                    self.renderer.console.print(f"[dim italic]No, no, you're right. Option {choice_idx + 1}. Definitely.[/]\n")
                     time.sleep(0.8)
                 
                 # Process choice (stores danger level for later display)

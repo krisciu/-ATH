@@ -243,8 +243,8 @@ class EndingsManager:
         revelation_level = context.get('revelation_level', 0)
         session_count = context.get('session_count', 0)
         
-        # MINIMUM THRESHOLD: Don't end before choice 8 (give players a chance to play)
-        if choice_count < 8:
+        # MINIMUM THRESHOLD: Don't end before choice 12 (give players time to experience content)
+        if choice_count < 12:
             return None
         
         # Priority 1: Instant death traps (handled separately in story_engine)

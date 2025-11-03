@@ -457,9 +457,11 @@ Technical information:
         # Restore cursor
         self.show_cursor()
         
-        # Reset terminal title
+        # Reset terminal title (use print to avoid Rich formatting)
         try:
-            self.console.print("\033]0;Terminal\007", end="")
+            import sys
+            sys.stdout.write("\033]0;Terminal\007")
+            sys.stdout.flush()
         except Exception:
             pass
 
